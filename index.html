@@ -24,29 +24,8 @@
   <div id="viewHome" class="view active">
     <div class="quote-card" id="dailyQuote"></div>
 
-    <div class="section-header"><h2>Today's Virtues</h2></div>
-    <div id="todayVirtues" class="card"><p style="color:var(--text3)">Complete your morning practice in the Stoic tab.</p></div>
-
-    <!-- Quick Log -->
-    <div class="quick-log mt-20">
-      <div class="quick-log-header">
-        <h3>⚡ Quick Log</h3>
-        <button class="btn btn-sm btn-ghost" onclick="switchTab('log')">Full Log →</button>
-      </div>
-      <div class="intensity-display" id="quickIntDisplay">5</div>
-      <input type="range" min="1" max="10" value="5" class="intensity-slider" id="quickIntSlider"
-        oninput="document.getElementById('quickIntDisplay').textContent=this.value;colorIntensity(document.getElementById('quickIntDisplay'),parseInt(this.value))">
-      <div class="intensity-labels"><span>Mild</span><span>Explosive</span></div>
-      <div class="trigger-chips" id="quickTriggers">
-        <button class="trigger-chip" data-t="disrespect" onclick="this.classList.toggle('selected')">Disrespect</button>
-        <button class="trigger-chip" data-t="injustice" onclick="this.classList.toggle('selected')">Injustice</button>
-        <button class="trigger-chip" data-t="control" onclick="this.classList.toggle('selected')">Loss of control</button>
-        <button class="trigger-chip" data-t="delay" onclick="this.classList.toggle('selected')">Delay</button>
-        <button class="trigger-chip" data-t="criticism" onclick="this.classList.toggle('selected')">Criticism</button>
-        <button class="trigger-chip" data-t="ignored" onclick="this.classList.toggle('selected')">Being ignored</button>
-      </div>
-      <button class="btn btn-primary btn-full mt-12" onclick="saveQuickLog()">Save Quick Log</button>
-    </div>
+    <div class="section-header" style="cursor:pointer" onclick="switchTab('stoic')"><h2>Today's Virtues</h2><span class="tag tag-gold">Tap to set →</span></div>
+    <div id="todayVirtues" class="card" style="cursor:pointer" onclick="switchTab('stoic')"><p style="color:var(--text3)">Tap here to set your morning virtues.</p></div>
 
     <button class="btn btn-gold btn-full mt-20" onclick="openRoutine('evening')" style="font-family:var(--serif);font-size:1rem;padding:18px">
       🌙 Conclude the Day — A New River Tomorrow
@@ -66,51 +45,56 @@
           <div class="emotion-category">
             <div class="emotion-category-title">Acute / High Energy</div>
             <div class="emotion-chips">
-              <button class="emotion-chip" data-group="anger" data-e="Anger" onclick="this.classList.toggle('selected')">Anger</button>
-              <button class="emotion-chip" data-group="anger" data-e="Panic" onclick="this.classList.toggle('selected')">Panic</button>
-              <button class="emotion-chip" data-group="anger" data-e="Frustration" onclick="this.classList.toggle('selected')">Frustration</button>
-              <button class="emotion-chip" data-group="anger" data-e="Irritability" onclick="this.classList.toggle('selected')">Irritability</button>
+              <button class="emotion-chip" data-group="anger" data-e="Anger" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Anger</button>
+              <button class="emotion-chip" data-group="anger" data-e="Panic" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Panic</button>
+              <button class="emotion-chip" data-group="anger" data-e="Frustration" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Frustration</button>
+              <button class="emotion-chip" data-group="anger" data-e="Irritability" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Irritability</button>
             </div>
           </div>
           <div class="emotion-category">
             <div class="emotion-category-title">Fear-Based</div>
             <div class="emotion-chips">
-              <button class="emotion-chip" data-group="fear" data-e="Fear" onclick="this.classList.toggle('selected')">Fear</button>
-              <button class="emotion-chip" data-group="fear" data-e="Anxiety" onclick="this.classList.toggle('selected')">Anxiety</button>
+              <button class="emotion-chip" data-group="fear" data-e="Fear" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Fear</button>
+              <button class="emotion-chip" data-group="fear" data-e="Anxiety" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Anxiety</button>
             </div>
           </div>
           <div class="emotion-category">
             <div class="emotion-category-title">Relational / Social</div>
             <div class="emotion-chips">
-              <button class="emotion-chip" data-group="shame" data-e="Resentment" onclick="this.classList.toggle('selected')">Resentment</button>
-              <button class="emotion-chip" data-group="shame" data-e="Bitterness" onclick="this.classList.toggle('selected')">Bitterness</button>
-              <button class="emotion-chip" data-group="other" data-e="Envy" onclick="this.classList.toggle('selected')">Envy</button>
-              <button class="emotion-chip" data-group="other" data-e="Jealousy" onclick="this.classList.toggle('selected')">Jealousy</button>
-              <button class="emotion-chip" data-group="sadness" data-e="Loneliness" onclick="this.classList.toggle('selected')">Loneliness</button>
+              <button class="emotion-chip" data-group="shame" data-e="Resentment" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Resentment</button>
+              <button class="emotion-chip" data-group="shame" data-e="Bitterness" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Bitterness</button>
+              <button class="emotion-chip" data-group="other" data-e="Envy" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Envy</button>
+              <button class="emotion-chip" data-group="other" data-e="Jealousy" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Jealousy</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Loneliness" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Loneliness</button>
             </div>
           </div>
           <div class="emotion-category">
             <div class="emotion-category-title">Self-Directed</div>
             <div class="emotion-chips">
-              <button class="emotion-chip" data-group="shame" data-e="Shame" onclick="this.classList.toggle('selected')">Shame</button>
-              <button class="emotion-chip" data-group="shame" data-e="Guilt" onclick="this.classList.toggle('selected')">Guilt</button>
-              <button class="emotion-chip" data-group="shame" data-e="Self-pity" onclick="this.classList.toggle('selected')">Self-pity</button>
+              <button class="emotion-chip" data-group="shame" data-e="Shame" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Shame</button>
+              <button class="emotion-chip" data-group="shame" data-e="Guilt" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Guilt</button>
+              <button class="emotion-chip" data-group="shame" data-e="Self-pity" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Self-pity</button>
             </div>
           </div>
           <div class="emotion-category">
             <div class="emotion-category-title">Heavy / Low Energy</div>
             <div class="emotion-chips">
-              <button class="emotion-chip" data-group="sadness" data-e="Sadness" onclick="this.classList.toggle('selected')">Sadness</button>
-              <button class="emotion-chip" data-group="sadness" data-e="Disgust" onclick="this.classList.toggle('selected')">Disgust</button>
-              <button class="emotion-chip" data-group="sadness" data-e="Despair" onclick="this.classList.toggle('selected')">Despair</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Sadness" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Sadness</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Disgust" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Disgust</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Despair" onclick="this.classList.toggle('selected');updateDynamicQuestions()">Despair</button>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Dynamic context questions based on selected emotions -->
+      <div id="dynamicQuestions"></div>
+
       <div class="form-group"><label>Setting / Context</label><input type="text" id="logSetting" placeholder="Where were you? Who was there?"></div>
-      <div class="form-group"><label>Trigger (observable facts)</label><textarea id="logTrigger" rows="2" placeholder="What specifically happened?"></textarea></div>
-      <div class="form-group"><label>Initial Thought</label><textarea id="logThought" rows="2" placeholder='Your first thought...'></textarea></div>
+
+      <div class="form-group"><label>What happened? (observable facts)</label><textarea id="logTrigger" rows="2" placeholder="What specifically triggered this?"></textarea></div>
+
+      <div class="form-group"><label>First thought that crossed your mind</label><textarea id="logThought" rows="2" placeholder='The automatic thought...'></textarea></div>
 
       <div class="form-group"><label>Body Signals</label>
         <div class="body-signals" id="bodySignals">
@@ -137,11 +121,11 @@
         <div class="timing-row"><input type="number" id="logDurationMin" min="0" placeholder="min" style="width:80px"><span class="timing-unit">min</span>
           <input type="number" id="logDurationSec" min="0" max="59" placeholder="sec" style="width:80px"><span class="timing-unit">sec</span></div></div>
 
-      <div class="form-group"><label>Action Taken</label><textarea id="logAction" rows="2" placeholder="What did you actually do?"></textarea></div>
-      <div class="form-group"><label>Aftermath</label><textarea id="logAftermath" rows="2" placeholder="How did you feel 30 min later?"></textarea></div>
-      <div class="form-group"><label>What resolved it?</label><textarea id="logResolved" rows="2" placeholder="What brought the anger down?"></textarea></div>
-      <div class="form-group"><label>What can I do better next time?</label><textarea id="logBetterNext" rows="2" placeholder="Skills to deploy, things to change..."></textarea></div>
-      <div class="form-group"><label>What is the deflection / escalation point?</label><textarea id="logDeflection" rows="2" placeholder="At what moment could I have changed course? What was the turning point?"></textarea></div>
+      <div class="form-group"><label>What did you actually do?</label><textarea id="logAction" rows="2" placeholder="How did you respond?"></textarea></div>
+      <div class="form-group"><label>Aftermath</label><textarea id="logAftermath" rows="2" placeholder="How did you feel later? Consequences?"></textarea></div>
+      <div class="form-group"><label>What resolved it?</label><textarea id="logResolved" rows="2" placeholder="What brought you back to balance?"></textarea></div>
+      <div class="form-group"><label>What would you do differently next time?</label><textarea id="logBetterNext" rows="2" placeholder="Skills to deploy, things to change..."></textarea></div>
+      <div class="form-group"><label>What is the deflection / escalation point?</label><textarea id="logDeflection" rows="2" placeholder="At what moment could you have changed course?"></textarea></div>
       <div class="form-group"><label>Selfie (optional)</label>
         <div class="photo-upload"><input type="file" accept="image/*" capture="user" id="logPhoto" onchange="previewLogPhoto(this)" style="display:none">
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logPhoto').click()">📷 Photo</button>

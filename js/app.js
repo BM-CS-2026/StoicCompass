@@ -354,8 +354,46 @@ async function saveQuickLog() {
   alert('Quick log saved.');
 }
 
-// ===== ANGER LOG =====
+// ===== LOG =====
 let pendingPhoto = null;
+
+const EMOTION_QUESTIONS = {
+  Anger:       { q: "What provoked this anger?", placeholder: "What felt unjust, disrespectful, or blocking your goals?" },
+  Panic:       { q: "What triggered this panic?", placeholder: "What felt suddenly overwhelming or out of control?" },
+  Frustration: { q: "What is the source of frustration?", placeholder: "What expectation wasn't met? What felt blocked?" },
+  Irritability:{ q: "What is irritating you?", placeholder: "What small things are grating on you? Are you depleted?" },
+  Fear:        { q: "What are you afraid of?", placeholder: "What threat — real or imagined — is driving this fear?" },
+  Anxiety:     { q: "What is feeding this anxiety?", placeholder: "What future scenario are you dreading? What feels uncertain?" },
+  Resentment:  { q: "Who or what do you resent, and why?", placeholder: "What past wrong are you carrying? What feels unfair?" },
+  Bitterness:  { q: "What bitterness are you holding?", placeholder: "What wound hasn't healed? What expectation was betrayed?" },
+  Envy:        { q: "What are you envious of?", placeholder: "What does someone else have that you feel you deserve?" },
+  Jealousy:    { q: "What is driving this jealousy?", placeholder: "What relationship or position feels threatened?" },
+  Loneliness:  { q: "What does this loneliness feel like?", placeholder: "What connection is missing? Who do you wish was here?" },
+  Shame:       { q: "What are you ashamed of?", placeholder: "What part of yourself feels exposed or not good enough?" },
+  Guilt:       { q: "What do you feel guilty about?", placeholder: "What did you do — or fail to do — that conflicts with your values?" },
+  "Self-pity": { q: "What is feeding the self-pity?", placeholder: "What feels unfair about your situation? What do you wish was different?" },
+  Sadness:     { q: "What is the source of this sadness?", placeholder: "What loss, disappointment, or absence are you feeling?" },
+  Disgust:     { q: "What disgusts you?", placeholder: "What behavior or situation violates your moral standards?" },
+  Despair:     { q: "What feels hopeless right now?", placeholder: "What situation feels impossible to change? What have you given up on?" },
+};
+
+function updateDynamicQuestions() {
+  const container = document.getElementById('dynamicQuestions');
+  if (!container) return;
+  const selected = [];
+  document.querySelectorAll('#emotionWheel .emotion-chip.selected').forEach(c => selected.push(c.dataset.e));
+
+  if (selected.length === 0) { container.innerHTML = ''; return; }
+
+  container.innerHTML = selected.map(emotion => {
+    const eq = EMOTION_QUESTIONS[emotion];
+    if (!eq) return '';
+    return `<div class="form-group" style="border-left:3px solid var(--gold);padding-left:12px;margin-left:4px">
+      <label>${eq.q}</label>
+      <textarea class="dynamic-q" data-emotion="${emotion}" rows="2" placeholder="${eq.placeholder}"></textarea>
+    </div>`;
+  }).join('');
+}
 
 function initBodySignals() {
   document.querySelectorAll('#bodySignals .body-signal').forEach(btn => {
@@ -426,6 +464,12 @@ async function doSaveLog(editId) {
   const eventDateEl = document.getElementById('logEventDate');
   const eventDate = eventDateEl?.value ? new Date(eventDateEl.value).toISOString() : new Date().toISOString();
 
+  // Collect dynamic emotion-specific answers
+  const emotionDetails = {};
+  document.querySelectorAll('.dynamic-q').forEach(ta => {
+    if (ta.value.trim()) emotionDetails[ta.dataset.emotion] = ta.value.trim();
+  });
+
   if (!trigger && emotions.length === 0) { alert('Please describe a trigger or select an emotion.'); return; }
 
   // Emotions
@@ -444,6 +488,7 @@ async function doSaveLog(editId) {
     eventDate,
     setting, trigger, thought,
     emotions: emotions,
+    emotionDetails,
     bodySignals: signals,
     intensity, action, aftermath,
     resolved, betterNext, deflection,
@@ -499,6 +544,8 @@ function clearLogForm() {
   document.getElementById('intensityDisplay').style.color = '';
   document.querySelectorAll('#bodySignals .body-signal.selected').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('#emotionWheel .emotion-chip.selected').forEach(c => c.classList.remove('selected'));
+  const dq = document.getElementById('dynamicQuestions');
+  if (dq) dq.innerHTML = '';
   const photoPreview = document.getElementById('logPhotoPreview');
   if (photoPreview) photoPreview.innerHTML = '';
   const photoInput = document.getElementById('logPhoto');
@@ -659,6 +706,7 @@ function renderLogList() {
       <div class="log-entry-trigger"><strong>Trigger:</strong> ${esc(l.trigger)}</div>
       ${l.thought ? `<div class="log-entry-thought">"${esc(l.thought)}"</div>` : ''}
       ${(l.emotions && l.emotions.length) ? `<div style="margin-top:6px">${l.emotions.map(e => `<span class="tag tag-gold" style="margin:2px">${e}</span>`).join('')}</div>` : ''}
+      ${l.emotionDetails ? Object.entries(l.emotionDetails).map(([em,txt]) => `<div style="margin-top:4px;font-size:0.82rem;color:var(--text2);border-left:2px solid var(--gold);padding-left:8px"><strong>${em}:</strong> ${esc(txt)}</div>`).join('') : ''}
       ${l.bodySignals?.length ? `<div style="margin-top:6px">${l.bodySignals.map(s => `<span class="tag tag-accent" style="margin:2px">${s.replace(/-/g,' ')}</span>`).join('')}</div>` : ''}
       ${(l.timeToPeak || durStr) ? `<div class="log-entry-timing">
         ${l.timeToPeak ? `<span>⚡ Peak: ${l.timeToPeak}s</span>` : ''}
