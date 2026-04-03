@@ -163,6 +163,21 @@
     </div>
 
     <div class="card stoic-card">
+      <div class="card-header"><span class="card-icon">👁</span><h3>What to Be Aware of Today</h3></div>
+      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Situations, people, or patterns that may challenge your equanimity. Name them now so they don't catch you off guard.</p>
+      <div class="form-group"><label>Situations or interactions to watch for</label><textarea id="awareToday" rows="3" placeholder="A tense meeting at 2pm... A conversation I've been avoiding... The commute when I'm tired..."></textarea></div>
+      <div class="form-group"><label>Which virtue will I need most?</label>
+        <div class="trigger-chips">
+          <button class="trigger-chip" data-t="justice" onclick="this.classList.toggle('selected')">⚖️ Justice</button>
+          <button class="trigger-chip" data-t="courage" onclick="this.classList.toggle('selected')">🦁 Courage</button>
+          <button class="trigger-chip" data-t="temperance" onclick="this.classList.toggle('selected')">🧘 Temperance</button>
+          <button class="trigger-chip" data-t="wisdom" onclick="this.classList.toggle('selected')">🦉 Wisdom</button>
+        </div>
+      </div>
+      <div class="form-group"><label>My planned response if triggered</label><textarea id="awarePlan" rows="2" placeholder="I will pause, breathe, and ask a clarifying question before reacting..."></textarea></div>
+    </div>
+
+    <div class="card stoic-card">
       <div class="card-header"><span class="card-icon">🌑</span><h3>Negative Visualization</h3></div>
       <p class="mb-12" style="font-size:0.82rem;color:var(--text2)"><em>Premeditatio malorum</em> — Prepare for adversity so you respond with equanimity.</p>
       <div class="form-group"><label>1. Something bad that might happen</label><textarea id="negViz1" rows="1" placeholder="The meeting might go poorly..."></textarea></div>
@@ -236,6 +251,7 @@
         <button class="tool-btn" onclick="openTool('defusion')"><span class="tb-icon">☁️</span><span class="tb-label">Defusion</span></button>
         <button class="tool-btn" onclick="openTool('dearman')"><span class="tb-icon">🗣</span><span class="tb-label">DEAR MAN</span></button>
         <button class="tool-btn" onclick="openTool('selfcompassion')"><span class="tb-icon">💛</span><span class="tb-label">Self-Compassion</span></button>
+        <button class="tool-btn" onclick="openTool('premeditated')" style="border-color:rgba(212,167,106,0.2)"><span class="tb-icon">🔮</span><span class="tb-label">Premeditated Challenge</span></button>
       </div>
     </div>
     <div id="toolDetail" style="display:none"></div>
@@ -259,12 +275,41 @@
     <div class="card mt-16"><div class="card-header"><span class="card-icon">⚙️</span><h3>Settings</h3></div>
       <div class="form-group"><label>Your Name (cognitive distancing)</label><input type="text" id="userNameInput" placeholder="Boaz Manash" onchange="saveUserName(this.value)"></div>
     </div>
-    <div class="card"><div class="card-header"><span class="card-icon">🔄</span><h3>Sync</h3></div>
+    <div class="card"><div class="card-header"><span class="card-icon">🔄</span><h3>Sync (Cloudant)</h3></div>
       <div id="syncStatus" class="tag tag-gold mb-12" style="display:none">Not connected</div>
-      <div class="form-group"><label>Cloudant URL</label><input type="url" id="syncUrlInput" placeholder="https://user:pass@host/stoiccompass"></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="connectSync()">Connect</button><button class="btn btn-secondary btn-sm" onclick="disconnectSync()">Disconnect</button><button class="btn btn-secondary btn-sm" onclick="testSyncConnection()">Test</button></div></div>
-    <div class="card"><div class="card-header"><span class="card-icon">💾</span><h3>Backup</h3></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-secondary btn-sm" onclick="doExport()">Export</button><button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">Import</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="doImport(this)"></div></div>
+      <div class="form-group"><label>Cloudant Database URL</label><input type="url" id="syncUrlInput" placeholder="https://user:pass@host.cloudantnosqldb.appdomain.cloud/stoiccompass"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="connectSync()">Connect Live Sync</button>
+        <button class="btn btn-secondary btn-sm" onclick="disconnectSync()">Disconnect</button>
+        <button class="btn btn-secondary btn-sm" onclick="testSyncConnection()">Test Connection</button>
+      </div>
+      <div class="divider"></div>
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px"><strong>Manual Push / Pull</strong> — Use these to force a one-time sync if live sync isn't running or you want to make sure data is backed up.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-gold btn-sm" onclick="doPushOnce()">⬆ Push to Cloud</button>
+        <button class="btn btn-secondary btn-sm" onclick="doPullOnce()">⬇ Pull from Cloud</button>
+        <button class="btn btn-secondary btn-sm" onclick="doCheckRemote()">🔍 Check Remote</button>
+      </div>
+      <div id="syncLog" class="mt-12" style="font-size:0.78rem;color:var(--text3);max-height:120px;overflow-y:auto"></div>
+    </div>
+
+    <div class="card"><div class="card-header"><span class="card-icon">💾</span><h3>Backup (JSON File)</h3></div>
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px">Export all data as a JSON file to your device, or restore from a previous backup.</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="doExport()">⬇ Export JSON</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="doImport(this)">
+      </div>
+    </div>
+
+    <div class="card"><div class="card-header"><span class="card-icon">🔧</span><h3>Troubleshooting</h3></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="showDbInfo()">📊 Local DB Info</button>
+        <button class="btn btn-secondary btn-sm" onclick="forceRefresh()">🔄 Force Refresh UI</button>
+        <button class="btn btn-danger btn-sm" onclick="clearLocalData()">🗑 Clear Local Data</button>
+      </div>
+      <div id="troubleshootLog" class="mt-12" style="font-size:0.78rem;color:var(--text3);max-height:150px;overflow-y:auto"></div>
+    </div>
   </div>
 
   <!-- Floating Calm Button -->

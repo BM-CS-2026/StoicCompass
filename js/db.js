@@ -286,7 +286,6 @@ async function importAllData(data) {
   let imported = 0;
   for (const doc of data.docs) {
     try {
-      // Remove _rev so PouchDB treats as new/update
       const { _rev, ...cleanDoc } = doc;
       try {
         const existing = await localDB.get(doc._id);
@@ -301,4 +300,38 @@ async function importAllData(data) {
     }
   }
   return imported;
+}
+
+// ── Push / Pull (one-time) ──
+
+async function pushOnce(remoteUrl) {
+  const remote = makeRemoteDB(remoteUrl);
+  return new Promise((resolve, reject) => {
+    localDB.replicate.to(remote, { batch_size: 25 })
+      .on('complete', info => resolve(info))
+      .on('error', err => reject(err));
+  });
+}
+
+async function pullOnce(remoteUrl) {
+  const remote = makeRemoteDB(remoteUrl);
+  return new Promise((resolve, reject) => {
+    localDB.replicate.from(remote, { batch_size: 25 })
+      .on('complete', info => resolve(info))
+      .on('error', err => reject(err));
+  });
+}
+
+async function checkRemote(remoteUrl) {
+  const remote = makeRemoteDB(remoteUrl);
+  const info = await remote.info();
+  return info;
+}
+
+async function getLocalDbInfo() {
+  return localDB.info();
+}
+
+async function destroyLocalDb() {
+  return localDB.destroy();
 }

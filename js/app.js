@@ -247,6 +247,7 @@ async function showTodayVirtues() {
 
   container.innerHTML = `
     ${virtues.length ? virtues.join('') : '<p style="color:var(--text3)">No virtues set for today.</p>'}
+    ${todayMorning.awareToday ? `<div style="margin-top:10px;padding:10px;background:rgba(212,167,106,0.06);border-radius:8px;border-left:3px solid var(--gold)"><div style="font-size:0.78rem;font-weight:700;color:var(--gold);margin-bottom:4px">👁 AWARE OF TODAY</div><div style="font-size:0.85rem;color:var(--text2)">${esc(todayMorning.awareToday)}</div>${todayMorning.awarePlan ? `<div style="font-size:0.82rem;color:var(--accent);margin-top:4px"><strong>Plan:</strong> ${esc(todayMorning.awarePlan)}</div>` : ''}</div>` : ''}
     ${names.length ? `<div style="margin-top:8px;font-size:0.85rem;color:var(--text3)"><strong>🏛 Prepared for:</strong> ${names.join(', ')}</div>` : ''}
     ${models.length ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text3)"><strong>🗿 Models:</strong> ${models.map(([k,v]) => v).join(', ')}</div>` : ''}
   `;
@@ -800,6 +801,7 @@ function openTool(tool, prefillData) {
     case 'defusion': renderDefusion(detail); break;
     case 'dearman': renderDearMan(detail); break;
     case 'selfcompassion': renderSelfCompassion(detail); break;
+    case 'premeditated': renderPremeditated(detail); break;
   }
 }
 
@@ -1456,6 +1458,132 @@ function renderSelfCompassion(el) {
     </div>`;
 }
 
+// ===== PREMEDITATED CHALLENGE =====
+function renderPremeditated(el) {
+  el.innerHTML = `
+    <button class="back-btn" onclick="backToTools()">← Tools</button>
+    <h2 class="mb-8" style="font-family:var(--serif)">🔮 Premeditated Challenge</h2>
+    <p class="mb-16" style="color:var(--text2);font-size:0.9rem">
+      A Stoic prepares for difficulty before it arrives. Use this to walk through an anticipated challenge — a meeting, a conversation, a situation — <em>before</em> it happens.
+    </p>
+
+    <div class="card">
+      <div class="form-group"><label>What is the anticipated situation?</label>
+        <textarea id="premedSituation" rows="2" placeholder="Tomorrow's meeting with... The conversation about... The event where..."></textarea></div>
+
+      <div class="form-group"><label>When will it happen?</label>
+        <input type="datetime-local" id="premedWhen"></div>
+
+      <div class="form-group"><label>What emotions might arise?</label>
+        <div class="emotion-chips" id="premedEmotions">
+          <button class="emotion-chip" data-group="anger" onclick="this.classList.toggle('selected')">Anger</button>
+          <button class="emotion-chip" data-group="anger" onclick="this.classList.toggle('selected')">Frustration</button>
+          <button class="emotion-chip" data-group="fear" onclick="this.classList.toggle('selected')">Fear</button>
+          <button class="emotion-chip" data-group="fear" onclick="this.classList.toggle('selected')">Anxiety</button>
+          <button class="emotion-chip" data-group="shame" onclick="this.classList.toggle('selected')">Shame</button>
+          <button class="emotion-chip" data-group="shame" onclick="this.classList.toggle('selected')">Resentment</button>
+          <button class="emotion-chip" data-group="other" onclick="this.classList.toggle('selected')">Envy</button>
+          <button class="emotion-chip" data-group="sadness" onclick="this.classList.toggle('selected')">Sadness</button>
+          <button class="emotion-chip" data-group="sadness" onclick="this.classList.toggle('selected')">Helplessness</button>
+        </div></div>
+
+      <div class="form-group"><label>What is the worst that could happen?</label>
+        <textarea id="premedWorst" rows="2" placeholder="They might say... I could lose... It could end with..."></textarea></div>
+
+      <div class="form-group"><label>What is within my control?</label>
+        <textarea id="premedControl" rows="2" placeholder="My tone, my preparation, whether I listen first..."></textarea></div>
+
+      <div class="form-group"><label>What is NOT within my control?</label>
+        <textarea id="premedNoControl" rows="2" placeholder="Their reaction, the outcome, other people's opinions..."></textarea></div>
+
+      <div class="form-group"><label>Which virtue do I need most?</label>
+        <div class="trigger-chips" id="premedVirtues">
+          <button class="trigger-chip" onclick="this.classList.toggle('selected')">⚖️ Justice</button>
+          <button class="trigger-chip" onclick="this.classList.toggle('selected')">🦁 Courage</button>
+          <button class="trigger-chip" onclick="this.classList.toggle('selected')">🧘 Temperance</button>
+          <button class="trigger-chip" onclick="this.classList.toggle('selected')">🦉 Wisdom</button>
+        </div></div>
+
+      <div class="form-group"><label>My committed response — what I will do regardless of how I feel</label>
+        <textarea id="premedResponse" rows="3" placeholder="I will listen before speaking. I will ask one question before reacting. I will breathe before responding to any provocation."></textarea></div>
+
+      <div class="form-group"><label>What would my role model do in this situation?</label>
+        <textarea id="premedModel" rows="2" placeholder="[Name] would stay calm and..."></textarea></div>
+
+      <div class="form-group"><label>How will I know I handled it well?</label>
+        <textarea id="premedSuccess" rows="2" placeholder="I will feel... The outcome will be... I will have stayed true to..."></textarea></div>
+    </div>
+
+    <button class="btn btn-gold btn-full mt-8" onclick="savePremeditated()">Save Premeditated Challenge</button>
+
+    <div class="mt-20"><h3 class="mb-12" style="font-family:var(--serif)">Past Preparations</h3><div id="premeditatedHistory"></div></div>`;
+
+  renderPremeditatedHistory();
+}
+
+async function savePremeditated() {
+  const situation = document.getElementById('premedSituation').value.trim();
+  if (!situation) { alert('Please describe the anticipated situation.'); return; }
+
+  const emotions = [];
+  document.querySelectorAll('#premedEmotions .emotion-chip.selected').forEach(c => emotions.push(c.textContent));
+  const virtues = [];
+  document.querySelectorAll('#premedVirtues .trigger-chip.selected').forEach(c => virtues.push(c.textContent));
+
+  const entry = {
+    id: Date.now(),
+    type: 'premeditated',
+    date: new Date().toISOString(),
+    situation,
+    when: document.getElementById('premedWhen').value || '',
+    emotions,
+    worst: document.getElementById('premedWorst').value.trim(),
+    control: document.getElementById('premedControl').value.trim(),
+    noControl: document.getElementById('premedNoControl').value.trim(),
+    virtues,
+    response: document.getElementById('premedResponse').value.trim(),
+    model: document.getElementById('premedModel').value.trim(),
+    success: document.getElementById('premedSuccess').value.trim(),
+  };
+
+  await dbPut('stoic', String(entry.id), entry);
+
+  // Clear form
+  ['premedSituation','premedWhen','premedWorst','premedControl','premedNoControl','premedResponse','premedModel','premedSuccess'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.querySelectorAll('#premedEmotions .selected, #premedVirtues .selected').forEach(c => c.classList.remove('selected'));
+
+  alert('Premeditated challenge saved.');
+  renderPremeditatedHistory();
+}
+
+async function renderPremeditatedHistory() {
+  const entries = await dbGetAll('stoic');
+  const premed = entries.filter(e => e.type === 'premeditated').sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const container = document.getElementById('premeditatedHistory');
+  if (!container) return;
+
+  if (premed.length === 0) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:0.85rem;text-align:center">No preparations yet.</p>';
+    return;
+  }
+
+  container.innerHTML = premed.slice(0, 15).map(e => {
+    const d = new Date(e.date).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const whenStr = e.when ? new Date(e.when).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : '';
+    return `<div class="stoic-journal-entry">
+      <div class="stoic-journal-date">${d} ${whenStr ? `| For: ${whenStr}` : ''}</div>
+      <span class="stoic-journal-type morning">Premeditated</span>
+      <div style="font-size:0.88rem;font-weight:600;margin-bottom:4px">${esc(e.situation)}</div>
+      ${e.emotions?.length ? `<div style="margin:4px 0">${e.emotions.map(em => `<span class="tag tag-gold" style="margin:2px">${em}</span>`).join('')}</div>` : ''}
+      ${e.control ? `<div style="font-size:0.82rem;color:var(--success);margin-top:4px"><strong>In my control:</strong> ${esc(e.control)}</div>` : ''}
+      ${e.noControl ? `<div style="font-size:0.82rem;color:var(--danger);margin-top:2px"><strong>Not in my control:</strong> ${esc(e.noControl)}</div>` : ''}
+      ${e.response ? `<div style="font-size:0.82rem;color:var(--accent);margin-top:4px"><strong>My response:</strong> ${esc(e.response)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 // ===== ROUTINES (MODAL) =====
 function openRoutine(type) {
   const modal = document.getElementById('modalOverlay');
@@ -1535,6 +1663,8 @@ async function loadTodayStoicData() {
     setVal('virtueTemperance', todayMorning.temperance);
     setVal('virtueWisdom', todayMorning.wisdom);
     (todayMorning.negViz || []).forEach((v, i) => setVal('negViz' + (i + 1), v));
+    setVal('awareToday', todayMorning.awareToday);
+    setVal('awarePlan', todayMorning.awarePlan);
     setVal('marcusNames1', (todayMorning.marcusNames || []).join(', '));
     const models = todayMorning.models || {};
     // Set select values after loadModelOptions has populated them
@@ -1574,6 +1704,9 @@ async function saveStoicMorning() {
       document.getElementById('negViz3').value.trim(),
     ].filter(v => v),
     marcusNames: [document.getElementById('marcusNames1').value.trim()].filter(v => v),
+    awareToday: document.getElementById('awareToday')?.value.trim() || '',
+    awarePlan: document.getElementById('awarePlan')?.value.trim() || '',
+    awareVirtues: Array.from(document.querySelectorAll('#viewStoic .card:nth-child(2) .trigger-chip.selected')).map(c => c.dataset.t).filter(Boolean),
     models: {
       justice: document.getElementById('modelJustice').value || document.getElementById('modelJusticeNew').value.trim(),
       courage: document.getElementById('modelCourage').value || document.getElementById('modelCourageNew').value.trim(),
@@ -1900,14 +2033,102 @@ async function doImport(input) {
     const data = JSON.parse(text);
     const count = await importAllData(data);
     state = await loadFullState();
-    renderHistory();
-    updateProgressStats();
-    buildDailyChecklist();
-    showTodayVirtues();
-    updateMorningEveningCards();
+    renderHistory(); updateProgressStats(); buildDailyChecklist(); showTodayVirtues();
     alert(`Imported ${count} records.`);
   } catch (e) {
     alert('Import failed: ' + e.message);
   }
   input.value = '';
+}
+
+// ===== PUSH / PULL / TROUBLESHOOTING =====
+function syncLog(msg) {
+  const el = document.getElementById('syncLog');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString();
+  el.innerHTML = `<div>[${time}] ${msg}</div>` + el.innerHTML;
+}
+
+function troubleLog(msg) {
+  const el = document.getElementById('troubleshootLog');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString();
+  el.innerHTML = `<div>[${time}] ${msg}</div>` + el.innerHTML;
+}
+
+async function doPushOnce() {
+  const url = getSyncUrl();
+  if (!url) { alert('Enter a Cloudant URL first.'); return; }
+  syncLog('Pushing to cloud...');
+  try {
+    const info = await pushOnce(url);
+    const wrote = info.docs_written || 0;
+    syncLog(`Push complete. ${wrote} docs written.`);
+    alert(`Push complete. ${wrote} documents written to cloud.`);
+  } catch (e) {
+    syncLog(`Push failed: ${e.message}`);
+    alert('Push failed: ' + e.message);
+  }
+}
+
+async function doPullOnce() {
+  const url = getSyncUrl();
+  if (!url) { alert('Enter a Cloudant URL first.'); return; }
+  syncLog('Pulling from cloud...');
+  try {
+    const info = await pullOnce(url);
+    const wrote = info.docs_written || 0;
+    syncLog(`Pull complete. ${wrote} docs received.`);
+    state = await loadFullState();
+    renderHistory(); updateProgressStats(); buildDailyChecklist(); showTodayVirtues();
+    alert(`Pull complete. ${wrote} documents received.`);
+  } catch (e) {
+    syncLog(`Pull failed: ${e.message}`);
+    alert('Pull failed: ' + e.message);
+  }
+}
+
+async function doCheckRemote() {
+  const url = getSyncUrl();
+  if (!url) { alert('Enter a Cloudant URL first.'); return; }
+  try {
+    const info = await checkRemote(url);
+    syncLog(`Remote: ${info.db_name}, ${info.doc_count} docs, seq: ${info.update_seq}`);
+    alert(`Remote database: ${info.db_name}\nDocuments: ${info.doc_count}\nDisk size: ${Math.round((info.sizes?.active || 0) / 1024)}KB`);
+  } catch (e) {
+    syncLog(`Check failed: ${e.message}`);
+    alert('Could not reach remote: ' + e.message);
+  }
+}
+
+async function showDbInfo() {
+  try {
+    const info = await getLocalDbInfo();
+    troubleLog(`Local DB: ${info.db_name}, ${info.doc_count} docs, seq: ${info.update_seq}`);
+    alert(`Local database: ${info.db_name}\nDocuments: ${info.doc_count}\nAdapter: ${info.adapter}`);
+  } catch (e) {
+    troubleLog(`Error: ${e.message}`);
+  }
+}
+
+async function forceRefresh() {
+  state = await loadFullState();
+  renderHistory(); updateProgressStats(); buildDailyChecklist(); showTodayVirtues();
+  troubleLog('UI refreshed from local DB.');
+  alert('UI refreshed.');
+}
+
+async function clearLocalData() {
+  if (!confirm('This will DELETE all local data. Are you sure?\n\nMake sure you have a backup (Export JSON) or data pushed to cloud first.')) return;
+  if (!confirm('LAST WARNING: All logs, thought records, stoic entries will be permanently deleted from this device.')) return;
+  try {
+    await destroyLocalDb();
+    localStorage.clear();
+    troubleLog('Local data cleared. Reloading...');
+    alert('Local data cleared. The app will reload.');
+    window.location.reload();
+  } catch (e) {
+    troubleLog(`Clear failed: ${e.message}`);
+    alert('Failed: ' + e.message);
+  }
 }
