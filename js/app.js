@@ -422,7 +422,11 @@ async function doSaveLog(editId) {
   const durSec = parseInt(document.getElementById('logDurationSec').value) || 0;
   const durationTotal = durMin * 60 + durSec;
 
-  if (!trigger) { alert('Please describe the trigger.'); return; }
+  const deflection = document.getElementById('logDeflection')?.value.trim() || '';
+  const eventDateEl = document.getElementById('logEventDate');
+  const eventDate = eventDateEl?.value ? new Date(eventDateEl.value).toISOString() : new Date().toISOString();
+
+  if (!trigger && emotions.length === 0) { alert('Please describe a trigger or select an emotion.'); return; }
 
   // Emotions
   const emotions = [];
@@ -437,11 +441,12 @@ async function doSaveLog(editId) {
   const entry = {
     id: editId || Date.now(),
     date: editId ? (state.logs.find(l => l.id === editId)?.date || new Date().toISOString()) : new Date().toISOString(),
+    eventDate,
     setting, trigger, thought,
     emotions: emotions,
     bodySignals: signals,
     intensity, action, aftermath,
-    resolved, betterNext,
+    resolved, betterNext, deflection,
     timeToPeak, duration: durationTotal,
     photo: pendingPhoto || (editId ? state.logs.find(l => l.id === editId)?.photo : null),
   };
@@ -461,9 +466,9 @@ async function doSaveLog(editId) {
   state.dailyChecks[today].angerlog = true;
   await saveDailyCheck(today, state.dailyChecks[today]);
 
-  clearLogForm();
   pendingPhoto = null;
   window._editingLogId = null;
+  window._lastSavedLogId = entry.id;
 
   const saveBtn = document.querySelector('#logForm .btn-primary');
   if (saveBtn) {
@@ -472,11 +477,20 @@ async function doSaveLog(editId) {
   }
 
   buildDailyChecklist();
-  alert(editId ? 'Entry updated.' : 'Log entry saved.');
+
+  if (editId) {
+    clearLogForm();
+    alert('Entry updated.');
+  } else {
+    // Show post-save actions (CBT button, log another)
+    const postSave = document.getElementById('postSaveActions');
+    if (postSave) postSave.style.display = '';
+    if (saveBtn) saveBtn.style.display = 'none';
+  }
 }
 
 function clearLogForm() {
-  ['logSetting','logTrigger','logThought','logAction','logAftermath','logResolved','logBetterNext','logTimeToPeak','logDurationMin','logDurationSec'].forEach(id => {
+  ['logSetting','logTrigger','logThought','logAction','logAftermath','logResolved','logBetterNext','logDeflection','logTimeToPeak','logDurationMin','logDurationSec','logEventDate'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -485,9 +499,16 @@ function clearLogForm() {
   document.getElementById('intensityDisplay').style.color = '';
   document.querySelectorAll('#bodySignals .body-signal.selected').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('#emotionWheel .emotion-chip.selected').forEach(c => c.classList.remove('selected'));
-  document.getElementById('logPhotoPreview').innerHTML = '';
-  document.getElementById('logPhoto').value = '';
+  const photoPreview = document.getElementById('logPhotoPreview');
+  if (photoPreview) photoPreview.innerHTML = '';
+  const photoInput = document.getElementById('logPhoto');
+  if (photoInput) photoInput.value = '';
   pendingPhoto = null;
+  // Reset post-save UI
+  const postSave = document.getElementById('postSaveActions');
+  if (postSave) postSave.style.display = 'none';
+  const saveBtn = document.querySelector('#logForm .btn-primary');
+  if (saveBtn) saveBtn.style.display = '';
 }
 
 function editLog(id) {
@@ -626,8 +647,8 @@ function renderLogList() {
   }
 
   list.innerHTML = state.logs.map(l => {
-    const d = new Date(l.date);
-    const dateStr = d.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+    const eventD = l.eventDate ? new Date(l.eventDate) : new Date(l.date);
+    const dateStr = eventD.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
     const durStr = l.duration ? (l.duration >= 60 ? `${Math.floor(l.duration/60)}m${l.duration%60 ? ' '+l.duration%60+'s' : ''}` : `${l.duration}s`) : '';
 
     return `<div class="log-entry">
@@ -646,6 +667,7 @@ function renderLogList() {
       ${l.action ? `<div style="margin-top:6px;font-size:0.82rem;color:var(--text2)"><strong>Action:</strong> ${esc(l.action)}</div>` : ''}
       ${l.resolved ? `<div style="margin-top:4px;font-size:0.82rem;color:var(--success)"><strong>Resolved by:</strong> ${esc(l.resolved)}</div>` : ''}
       ${l.betterNext ? `<div style="margin-top:4px;font-size:0.82rem;color:var(--accent)"><strong>Next time:</strong> ${esc(l.betterNext)}</div>` : ''}
+      ${l.deflection ? `<div style="margin-top:4px;font-size:0.82rem;color:var(--gold)"><strong>Deflection point:</strong> ${esc(l.deflection)}</div>` : ''}
       ${l.photo ? `<img src="${l.photo}" class="log-entry-photo" onclick="showFullPhoto('${l.id}')">` : ''}
       ${buildCognitiveDistancing(l)}
       <div class="log-entry-actions">
@@ -672,9 +694,10 @@ function showFullPhoto(id) {
 function buildCognitiveDistancing(log) {
   const name = getUserName();
   const intWord = log.intensity <= 3 ? 'mild' : log.intensity <= 5 ? 'moderate' : log.intensity <= 7 ? 'strong' : 'intense';
+  const emotionStr = (log.emotions && log.emotions.length) ? log.emotions.join(', ').toLowerCase() : 'distress';
 
   // Third-person rephrase
-  let thirdPerson = `${name} felt ${intWord} anger (${log.intensity}/10)`;
+  let thirdPerson = `${name} felt ${intWord} ${emotionStr} (${log.intensity}/10)`;
   if (log.trigger) thirdPerson += ` because ${log.trigger.charAt(0).toLowerCase() + log.trigger.slice(1).replace(/\.$/, '')}`;
   if (log.thought) thirdPerson += `. ${name}'s first thought was: "${log.thought}"`;
   if (log.action) thirdPerson += `. As a result, ${name} ${log.action.charAt(0).toLowerCase() + log.action.slice(1).replace(/\.$/, '')}`;
@@ -682,7 +705,7 @@ function buildCognitiveDistancing(log) {
   thirdPerson += '.';
 
   // 20-year perspective
-  let twentyYears = `Looking back 20 years from now, this was a moment when ${name} experienced ${intWord} frustration`;
+  let twentyYears = `Looking back 20 years from now, this was a moment when ${name} experienced ${intWord} ${emotionStr}`;
   if (log.trigger) twentyYears += ` about ${log.trigger.charAt(0).toLowerCase() + log.trigger.slice(1).replace(/\.$/, '')}`;
   twentyYears += `. In the larger arc of life, this was a passing storm -- one of thousands of small conflicts that shaped who ${name} chose to become.`;
   if (log.resolved) twentyYears += ` It was resolved when ${name} ${log.resolved.charAt(0).toLowerCase() + log.resolved.slice(1).replace(/\.$/, '')}.`;
@@ -702,6 +725,13 @@ function logToCBT(id) {
   const log = state.logs.find(l => l.id === id);
   if (!log) return;
   openTool('thoughtrecord', log);
+}
+
+function logToCBTLast() {
+  if (window._lastSavedLogId) {
+    logToCBT(window._lastSavedLogId);
+    clearLogForm();
+  }
 }
 
 // ===== TOOL DETAILS =====
@@ -1457,12 +1487,15 @@ async function loadTodayStoicData() {
     setVal('virtueTemperance', todayMorning.temperance);
     setVal('virtueWisdom', todayMorning.wisdom);
     (todayMorning.negViz || []).forEach((v, i) => setVal('negViz' + (i + 1), v));
-    (todayMorning.marcusNames || []).forEach((v, i) => setVal('marcusNames' + (i + 1), v));
+    setVal('marcusNames1', (todayMorning.marcusNames || []).join(', '));
     const models = todayMorning.models || {};
-    setVal('modelJustice', models.justice);
-    setVal('modelCourage', models.courage);
-    setVal('modelTemperance', models.temperance);
-    setVal('modelWisdom', models.wisdom);
+    // Set select values after loadModelOptions has populated them
+    setTimeout(() => {
+      setVal('modelJustice', models.justice);
+      setVal('modelCourage', models.courage);
+      setVal('modelTemperance', models.temperance);
+      setVal('modelWisdom', models.wisdom);
+    }, 100);
   }
 
   // Load today's evening
@@ -1492,16 +1525,12 @@ async function saveStoicMorning() {
       document.getElementById('negViz2').value.trim(),
       document.getElementById('negViz3').value.trim(),
     ].filter(v => v),
-    marcusNames: [
-      document.getElementById('marcusNames1').value.trim(),
-      document.getElementById('marcusNames2').value.trim(),
-      document.getElementById('marcusNames3').value.trim(),
-    ].filter(v => v),
+    marcusNames: [document.getElementById('marcusNames1').value.trim()].filter(v => v),
     models: {
-      justice: document.getElementById('modelJustice').value.trim(),
-      courage: document.getElementById('modelCourage').value.trim(),
-      temperance: document.getElementById('modelTemperance').value.trim(),
-      wisdom: document.getElementById('modelWisdom').value.trim(),
+      justice: document.getElementById('modelJustice').value || document.getElementById('modelJusticeNew').value.trim(),
+      courage: document.getElementById('modelCourage').value || document.getElementById('modelCourageNew').value.trim(),
+      temperance: document.getElementById('modelTemperance').value || document.getElementById('modelTemperanceNew').value.trim(),
+      wisdom: document.getElementById('modelWisdom').value || document.getElementById('modelWisdomNew').value.trim(),
     }
   };
 
@@ -1579,9 +1608,24 @@ async function saveWarningSign() {
 
 async function loadModelOptions() {
   const models = await dbGetAll('model');
-  const datalist = document.getElementById('modelOptions');
-  if (!datalist) return;
-  datalist.innerHTML = models.map(m => `<option value="${esc(m.name)}">`).join('');
+  const names = models.map(m => m.name).filter(Boolean).sort();
+  ['modelJustice','modelCourage','modelTemperance','modelWisdom'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const current = sel.value;
+    // Keep first option, rebuild rest
+    sel.innerHTML = '<option value="">-- Select --</option>' +
+      names.map(n => `<option value="${esc(n)}" ${n === current ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  });
+}
+
+async function addModelPerson(name) {
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  await dbPut('model', trimmed, { name: trimmed });
+  await loadModelOptions();
+  // Clear the "new" input
+  document.querySelectorAll('[id$="New"]').forEach(el => { if (el.value.trim() === trimmed) el.value = ''; });
 }
 
 async function renderStoicHistory() {

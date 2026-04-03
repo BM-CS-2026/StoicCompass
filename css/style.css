@@ -429,9 +429,41 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;hei
 /* ===== CHECKLIST ===== */
 .checklist{list-style:none}
 .checklist li{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-sm);margin-bottom:6px;background:var(--surface);border:1px solid rgba(255,255,255,0.04);transition:opacity .3s;cursor:pointer}
-.checklist li.done{opacity:0.5}
-.checklist li.done .check-label{text-decoration:line-through}
+.checklist li.done{opacity:0.7}
+.checklist li.done .check-label{color:var(--success)}
 .check-box{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .2s}
 .checklist li.done .check-box{background:var(--accent);color:#111;font-size:0.7rem}
 .check-label{font-size:0.88rem;font-weight:500}
 .check-time{margin-left:auto;font-size:0.72rem;color:var(--text3)}
+
+/* ===== TOOLS GRID ===== */
+.tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.tool-btn{
+  background:var(--surface);border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--radius);padding:18px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  text-align:center;cursor:pointer;
+  transition:border-color .2s,transform .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.tool-btn:active{transform:scale(0.95);border-color:var(--accent)}
+.tb-icon{font-size:2rem}
+.tb-label{font-size:0.75rem;font-weight:600;color:var(--text2);line-height:1.2}
+
+/* ===== MARCUS AURELIUS CARD ===== */
+.marcus-quote{
+  font-family:var(--serif);line-height:1.8;
+  padding:16px 18px;
+  background:rgba(212,167,106,0.05);
+  border-radius:var(--radius-sm);
+  border:1px solid rgba(212,167,106,0.1);
+}
+.marcus-quote p{color:var(--text);font-size:0.95rem;margin-bottom:6px}
+.marcus-traits{color:var(--gold);font-weight:600;font-size:1rem;margin-bottom:8px}
+.marcus-traits-inline{color:var(--gold);font-weight:600}
+.marcus-resolve{color:var(--text2);font-style:italic;margin-top:10px}
+.marcus-vow{
+  color:var(--accent);font-weight:700;font-size:1.1rem;
+  margin-top:12px;padding-top:10px;
+  border-top:1px solid rgba(212,167,106,0.15);
+}

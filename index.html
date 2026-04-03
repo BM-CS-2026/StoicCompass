@@ -24,21 +24,11 @@
   <div id="viewHome" class="view active">
     <div class="quote-card" id="dailyQuote"></div>
 
-    <div class="dual-cards">
-      <div class="ritual-card morning" id="morningCard" onclick="switchTab('stoic')">
-        <div class="rc-icon">🌅</div>
-        <div class="rc-title">Morning</div>
-        <div class="rc-sub">Prepare your mind</div>
-      </div>
-      <div class="ritual-card evening" id="eveningCard" onclick="openRoutine('evening')">
-        <div class="rc-icon">🌙</div>
-        <div class="rc-title">Evening</div>
-        <div class="rc-sub">Reflect & release</div>
-      </div>
-    </div>
+    <div class="section-header"><h2>Today's Virtues</h2></div>
+    <div id="todayVirtues" class="card"><p style="color:var(--text3)">Complete your morning practice in the Stoic tab.</p></div>
 
-    <!-- Quick Anger Log -->
-    <div class="quick-log">
+    <!-- Quick Log -->
+    <div class="quick-log mt-20">
       <div class="quick-log-header">
         <h3>⚡ Quick Log</h3>
         <button class="btn btn-sm btn-ghost" onclick="switchTab('log')">Full Log →</button>
@@ -58,48 +48,69 @@
       <button class="btn btn-primary btn-full mt-12" onclick="saveQuickLog()">Save Quick Log</button>
     </div>
 
-    <div class="section-header"><h2>Today's Virtues</h2></div>
-    <div id="todayVirtues" class="card"><p style="color:var(--text3)">Complete your morning practice in the Stoic tab.</p></div>
-
-    <div class="section-header mt-20"><h2>Daily Practice</h2></div>
-    <ul class="checklist" id="dailyChecklist"></ul>
+    <button class="btn btn-gold btn-full mt-20" onclick="openRoutine('evening')" style="font-family:var(--serif);font-size:1rem;padding:18px">
+      🌙 Conclude the Day — A New River Tomorrow
+    </button>
   </div>
 
   <!-- ===== LOG ===== -->
   <div id="viewLog" class="view">
     <div id="logForm">
-      <div class="section-header"><h2>Anger Log</h2></div>
-      <div class="form-group"><label>Setting / Context</label><input type="text" id="logSetting" placeholder="Where were you? Who was there?"></div>
-      <div class="form-group"><label>Trigger (observable facts)</label><textarea id="logTrigger" rows="2" placeholder="What specifically happened?"></textarea></div>
-      <div class="form-group"><label>Initial Thought</label><textarea id="logThought" rows="2" placeholder='Your first thought...'></textarea></div>
+      <div class="section-header"><h2 style="font-family:var(--serif)">Something is not in accordance with nature?</h2></div>
 
-      <!-- Emotion Wheel -->
-      <div class="form-group"><label>Emotions (tap all that apply)</label>
+      <div class="form-group"><label>When did it happen?</label>
+        <input type="datetime-local" id="logEventDate"></div>
+
+      <div class="form-group"><label>What are you feeling? (tap all that apply)</label>
         <div class="emotion-wheel" id="emotionWheel">
           <div class="emotion-category">
+            <div class="emotion-category-title">Acute / High Energy</div>
             <div class="emotion-chips">
-              <button class="emotion-chip" data-group="anger" data-e="Angry" onclick="this.classList.toggle('selected')">Angry</button>
-              <button class="emotion-chip" data-group="anger" data-e="Frustrated" onclick="this.classList.toggle('selected')">Frustrated</button>
-              <button class="emotion-chip" data-group="anger" data-e="Irritated" onclick="this.classList.toggle('selected')">Irritated</button>
-              <button class="emotion-chip" data-group="anger" data-e="Resentful" onclick="this.classList.toggle('selected')">Resentful</button>
-              <button class="emotion-chip" data-group="anger" data-e="Furious" onclick="this.classList.toggle('selected')">Furious</button>
-              <button class="emotion-chip" data-group="anger" data-e="Bitter" onclick="this.classList.toggle('selected')">Bitter</button>
-              <button class="emotion-chip" data-group="fear" data-e="Anxious" onclick="this.classList.toggle('selected')">Anxious</button>
-              <button class="emotion-chip" data-group="fear" data-e="Threatened" onclick="this.classList.toggle('selected')">Threatened</button>
-              <button class="emotion-chip" data-group="sadness" data-e="Hurt" onclick="this.classList.toggle('selected')">Hurt</button>
-              <button class="emotion-chip" data-group="sadness" data-e="Disappointed" onclick="this.classList.toggle('selected')">Disappointed</button>
-              <button class="emotion-chip" data-group="sadness" data-e="Helpless" onclick="this.classList.toggle('selected')">Helpless</button>
-              <button class="emotion-chip" data-group="shame" data-e="Humiliated" onclick="this.classList.toggle('selected')">Humiliated</button>
-              <button class="emotion-chip" data-group="shame" data-e="Ashamed" onclick="this.classList.toggle('selected')">Ashamed</button>
-              <button class="emotion-chip" data-group="shame" data-e="Guilty" onclick="this.classList.toggle('selected')">Guilty</button>
-              <button class="emotion-chip" data-group="other" data-e="Jealous" onclick="this.classList.toggle('selected')">Jealous</button>
-              <button class="emotion-chip" data-group="other" data-e="Betrayed" onclick="this.classList.toggle('selected')">Betrayed</button>
-              <button class="emotion-chip" data-group="other" data-e="Overwhelmed" onclick="this.classList.toggle('selected')">Overwhelmed</button>
-              <button class="emotion-chip" data-group="other" data-e="Contempt" onclick="this.classList.toggle('selected')">Contempt</button>
+              <button class="emotion-chip" data-group="anger" data-e="Anger" onclick="this.classList.toggle('selected')">Anger</button>
+              <button class="emotion-chip" data-group="anger" data-e="Panic" onclick="this.classList.toggle('selected')">Panic</button>
+              <button class="emotion-chip" data-group="anger" data-e="Frustration" onclick="this.classList.toggle('selected')">Frustration</button>
+              <button class="emotion-chip" data-group="anger" data-e="Irritability" onclick="this.classList.toggle('selected')">Irritability</button>
+            </div>
+          </div>
+          <div class="emotion-category">
+            <div class="emotion-category-title">Fear-Based</div>
+            <div class="emotion-chips">
+              <button class="emotion-chip" data-group="fear" data-e="Fear" onclick="this.classList.toggle('selected')">Fear</button>
+              <button class="emotion-chip" data-group="fear" data-e="Anxiety" onclick="this.classList.toggle('selected')">Anxiety</button>
+            </div>
+          </div>
+          <div class="emotion-category">
+            <div class="emotion-category-title">Relational / Social</div>
+            <div class="emotion-chips">
+              <button class="emotion-chip" data-group="shame" data-e="Resentment" onclick="this.classList.toggle('selected')">Resentment</button>
+              <button class="emotion-chip" data-group="shame" data-e="Bitterness" onclick="this.classList.toggle('selected')">Bitterness</button>
+              <button class="emotion-chip" data-group="other" data-e="Envy" onclick="this.classList.toggle('selected')">Envy</button>
+              <button class="emotion-chip" data-group="other" data-e="Jealousy" onclick="this.classList.toggle('selected')">Jealousy</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Loneliness" onclick="this.classList.toggle('selected')">Loneliness</button>
+            </div>
+          </div>
+          <div class="emotion-category">
+            <div class="emotion-category-title">Self-Directed</div>
+            <div class="emotion-chips">
+              <button class="emotion-chip" data-group="shame" data-e="Shame" onclick="this.classList.toggle('selected')">Shame</button>
+              <button class="emotion-chip" data-group="shame" data-e="Guilt" onclick="this.classList.toggle('selected')">Guilt</button>
+              <button class="emotion-chip" data-group="shame" data-e="Self-pity" onclick="this.classList.toggle('selected')">Self-pity</button>
+            </div>
+          </div>
+          <div class="emotion-category">
+            <div class="emotion-category-title">Heavy / Low Energy</div>
+            <div class="emotion-chips">
+              <button class="emotion-chip" data-group="sadness" data-e="Sadness" onclick="this.classList.toggle('selected')">Sadness</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Disgust" onclick="this.classList.toggle('selected')">Disgust</button>
+              <button class="emotion-chip" data-group="sadness" data-e="Despair" onclick="this.classList.toggle('selected')">Despair</button>
             </div>
           </div>
         </div>
       </div>
+
+      <div class="form-group"><label>Setting / Context</label><input type="text" id="logSetting" placeholder="Where were you? Who was there?"></div>
+      <div class="form-group"><label>Trigger (observable facts)</label><textarea id="logTrigger" rows="2" placeholder="What specifically happened?"></textarea></div>
+      <div class="form-group"><label>Initial Thought</label><textarea id="logThought" rows="2" placeholder='Your first thought...'></textarea></div>
 
       <div class="form-group"><label>Body Signals</label>
         <div class="body-signals" id="bodySignals">
@@ -115,10 +126,10 @@
           <button class="body-signal" data-signal="urge-to-move">Urge to move</button>
         </div></div>
 
-      <div class="form-group"><label>Anger Intensity</label>
+      <div class="form-group"><label>Intensity</label>
         <div class="intensity-display" id="intensityDisplay">5</div>
         <input type="range" id="logIntensity" min="1" max="10" value="5" class="intensity-slider">
-        <div class="intensity-labels"><span>Mild frustration</span><span>Explosive</span></div></div>
+        <div class="intensity-labels"><span>Mild</span><span>Overwhelming</span></div></div>
 
       <div class="form-group"><label>Time from trigger to peak (seconds)</label>
         <div class="timing-row"><input type="number" id="logTimeToPeak" min="0" placeholder="e.g. 10"><span class="timing-unit">sec</span></div></div>
@@ -130,11 +141,17 @@
       <div class="form-group"><label>Aftermath</label><textarea id="logAftermath" rows="2" placeholder="How did you feel 30 min later?"></textarea></div>
       <div class="form-group"><label>What resolved it?</label><textarea id="logResolved" rows="2" placeholder="What brought the anger down?"></textarea></div>
       <div class="form-group"><label>What can I do better next time?</label><textarea id="logBetterNext" rows="2" placeholder="Skills to deploy, things to change..."></textarea></div>
+      <div class="form-group"><label>What is the deflection / escalation point?</label><textarea id="logDeflection" rows="2" placeholder="At what moment could I have changed course? What was the turning point?"></textarea></div>
       <div class="form-group"><label>Selfie (optional)</label>
         <div class="photo-upload"><input type="file" accept="image/*" capture="user" id="logPhoto" onchange="previewLogPhoto(this)" style="display:none">
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logPhoto').click()">📷 Photo</button>
           <div id="logPhotoPreview"></div></div></div>
       <button class="btn btn-primary btn-full mt-8" onclick="doSaveLog()">Save Log Entry</button>
+      <div id="postSaveActions" style="display:none" class="mt-12">
+        <p style="color:var(--success);font-weight:600;margin-bottom:12px;text-align:center">Entry saved.</p>
+        <button class="btn btn-gold btn-full mb-8" onclick="logToCBTLast()">🧠 Continue to CBT Thought Record</button>
+        <button class="btn btn-secondary btn-full" onclick="clearLogForm();document.getElementById('postSaveActions').style.display='none'">Log Another Entry</button>
+      </div>
     </div>
   </div>
 
@@ -169,25 +186,26 @@
       <div class="form-group"><label>3. A third possibility</label><textarea id="negViz3" rows="1" placeholder="Someone might criticize my work..."></textarea></div>
     </div>
 
-    <div class="card stoic-card">
+    <div class="card stoic-card marcus-card">
       <div class="card-header"><span class="card-icon">🏛</span><h3>Marcus Aurelius — Daily Reminder</h3></div>
-      <blockquote style="font-family:var(--serif);font-style:italic;color:var(--text2);line-height:1.7;border-left:3px solid var(--gold);padding-left:14px;margin-bottom:14px">
-        "I shall meet with the busy-body, the ungrateful, arrogant, deceitful, envious, unsocial. I can neither be injured by any of them, nor can I change them."
-      </blockquote>
-      <p class="mb-12" style="font-size:0.82rem;color:var(--text3)">Who might you encounter today? Prepare with equanimity.</p>
-      <div class="form-group"><textarea id="marcusNames1" rows="1" placeholder="Person or situation..."></textarea></div>
-      <div class="form-group"><textarea id="marcusNames2" rows="1" placeholder="Another..."></textarea></div>
-      <div class="form-group"><textarea id="marcusNames3" rows="1" placeholder="Another..."></textarea></div>
+      <div class="marcus-quote">
+        <p>I shall meet people who are</p>
+        <p class="marcus-traits">gossiping, pushy, intrusive, ungrateful, arrogant, deceitful, sneaky, not trustworthy, envious, and unsocial.</p>
+        <p>Some will be <span class="marcus-traits-inline">rude, negative, selfish, loud, and difficult.</span></p>
+        <p class="marcus-resolve">I can neither be injured by any of them, nor can I change them.</p>
+        <p class="marcus-vow">I will not be them today.</p>
+      </div>
+      <p class="mt-16 mb-8" style="font-size:0.88rem;color:var(--text2)">Today you should be prepared to stumble on...</p>
+      <div class="form-group"><textarea id="marcusNames1" rows="2" placeholder="People, situations, or dynamics you may face today..."></textarea></div>
     </div>
 
     <div class="card stoic-card">
       <div class="card-header"><span class="card-icon">🗿</span><h3>Role Models</h3></div>
-      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Who embodies each virtue? Ask: "What would they do?"</p>
-      <div class="form-group"><label>⚖️ Justice</label><input type="text" id="modelJustice" list="modelOptions" placeholder="Who embodies fairness?"></div>
-      <div class="form-group"><label>🦁 Courage</label><input type="text" id="modelCourage" list="modelOptions" placeholder="Who embodies courage?"></div>
-      <div class="form-group"><label>🧘 Temperance</label><input type="text" id="modelTemperance" list="modelOptions" placeholder="Who embodies self-control?"></div>
-      <div class="form-group"><label>🦉 Wisdom</label><input type="text" id="modelWisdom" list="modelOptions" placeholder="Who embodies wisdom?"></div>
-      <datalist id="modelOptions"></datalist>
+      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Who embodies each virtue? Pick from your list or type a new name. Ask: "What would they do?"</p>
+      <div class="form-group"><label>⚖️ Justice</label><select id="modelJustice"><option value="">Select or type below...</option></select><input type="text" id="modelJusticeNew" class="mt-8" placeholder="Or add a new name..." onchange="addModelPerson(this.value)"></div>
+      <div class="form-group"><label>🦁 Courage</label><select id="modelCourage"><option value="">Select or type below...</option></select><input type="text" id="modelCourageNew" class="mt-8" placeholder="Or add a new name..." onchange="addModelPerson(this.value)"></div>
+      <div class="form-group"><label>🧘 Temperance</label><select id="modelTemperance"><option value="">Select or type below...</option></select><input type="text" id="modelTemperanceNew" class="mt-8" placeholder="Or add a new name..." onchange="addModelPerson(this.value)"></div>
+      <div class="form-group"><label>🦉 Wisdom</label><select id="modelWisdom"><option value="">Select or type below...</option></select><input type="text" id="modelWisdomNew" class="mt-8" placeholder="Or add a new name..." onchange="addModelPerson(this.value)"></div>
     </div>
 
     <button class="btn btn-gold btn-full mt-8 mb-20" onclick="saveStoicMorning()">Save Morning Practice</button>
@@ -219,18 +237,22 @@
   <!-- ===== TOOLS ===== -->
   <div id="viewTools" class="view">
     <div id="toolsList">
-      <h2 class="mb-16" style="font-family:var(--serif)">Calming Tools</h2>
-      <div class="tool-card" onclick="openTool('breathing')"><div class="tool-card-top"><span class="tool-emoji">🌬</span><h3>Extended Exhale Breathing</h3><span class="tool-time">5-10 min</span></div><p>4-count inhale, 2 hold, 7 exhale. Activates parasympathetic system.</p></div>
-      <div class="tool-card" onclick="openTool('grounding')"><div class="tool-card-top"><span class="tool-emoji">🌿</span><h3>5-4-3-2-1 Grounding</h3><span class="tool-time">60 sec</span></div><p>Redirect attention to senses. Interrupts the amygdala cascade.</p></div>
-      <div class="tool-card" onclick="openTool('pmr')"><div class="tool-card-top"><span class="tool-emoji">💪</span><h3>Progressive Muscle Relaxation</h3><span class="tool-time">15 min</span></div><p>Tense and release 11 muscle groups. Lowers baseline arousal.</p></div>
-      <div class="tool-card" onclick="openTool('timeout')"><div class="tool-card-top"><span class="tool-emoji">⏸</span><h3>Structured Time-Out</h3><span class="tool-time">8-10 min</span></div><p>Notice, Signal, Move, Regulate, Return.</p></div>
-      <div class="tool-card" onclick="openTool('feetfloor')"><div class="tool-card-top"><span class="tool-emoji">🦶</span><h3>Feet on the Floor</h3><span class="tool-time">30 sec</span></div><p>Instant physical grounding before responding.</p></div>
-      <h2 class="mt-20 mb-16" style="font-family:var(--serif)">Cognitive Tools</h2>
-      <div class="tool-card" onclick="openTool('thoughtrecord')"><div class="tool-card-top"><span class="tool-emoji">🧠</span><h3>CBT Thought Record</h3><span class="tool-time">15-20 min</span></div><p>6-column record. Identify distortions and reframe.</p></div>
-      <div class="tool-card" onclick="openTool('oppositeaction')"><div class="tool-card-top"><span class="tool-emoji">🔄</span><h3>DBT Opposite Action</h3><span class="tool-time">5 min</span></div><p>Act opposite to the urge. Reduces intensity and duration.</p></div>
-      <div class="tool-card" onclick="openTool('defusion')"><div class="tool-card-top"><span class="tool-emoji">☁️</span><h3>ACT Defusion</h3><span class="tool-time">10-15 min</span></div><p>Create distance from angry thoughts. Observe, don't obey.</p></div>
-      <div class="tool-card" onclick="openTool('dearman')"><div class="tool-card-top"><span class="tool-emoji">🗣</span><h3>DEAR MAN Communication</h3><span class="tool-time">15 min</span></div><p>Express needs assertively without attacking.</p></div>
-      <div class="tool-card" onclick="openTool('selfcompassion')"><div class="tool-card-top"><span class="tool-emoji">💛</span><h3>Self-Compassion</h3><span class="tool-time">3 min</span></div><p>After an episode. A neurological calming act.</p></div>
+      <h2 class="mb-12" style="font-family:var(--serif)">Calming</h2>
+      <div class="tools-grid">
+        <button class="tool-btn" onclick="openTool('breathing')"><span class="tb-icon">🌬</span><span class="tb-label">Breathe</span></button>
+        <button class="tool-btn" onclick="openTool('grounding')"><span class="tb-icon">🌿</span><span class="tb-label">Ground</span></button>
+        <button class="tool-btn" onclick="openTool('pmr')"><span class="tb-icon">💪</span><span class="tb-label">PMR</span></button>
+        <button class="tool-btn" onclick="openTool('timeout')"><span class="tb-icon">⏸</span><span class="tb-label">Time-Out</span></button>
+        <button class="tool-btn" onclick="openTool('feetfloor')"><span class="tb-icon">🦶</span><span class="tb-label">Feet Floor</span></button>
+      </div>
+      <h2 class="mt-20 mb-12" style="font-family:var(--serif)">Cognitive</h2>
+      <div class="tools-grid">
+        <button class="tool-btn" onclick="openTool('thoughtrecord')"><span class="tb-icon">🧠</span><span class="tb-label">CBT Record</span></button>
+        <button class="tool-btn" onclick="openTool('oppositeaction')"><span class="tb-icon">🔄</span><span class="tb-label">Opposite Action</span></button>
+        <button class="tool-btn" onclick="openTool('defusion')"><span class="tb-icon">☁️</span><span class="tb-label">Defusion</span></button>
+        <button class="tool-btn" onclick="openTool('dearman')"><span class="tb-icon">🗣</span><span class="tb-label">DEAR MAN</span></button>
+        <button class="tool-btn" onclick="openTool('selfcompassion')"><span class="tb-icon">💛</span><span class="tb-label">Self-Compassion</span></button>
+      </div>
     </div>
     <div id="toolDetail" style="display:none"></div>
   </div>
