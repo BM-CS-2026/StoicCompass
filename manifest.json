@@ -1,0 +1,14 @@
+{
+  "name": "Stoic Compass",
+  "short_name": "Stoic Compass",
+  "description": "Stoic philosophy & anger management companion",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1a1b2e",
+  "theme_color": "#1a1b2e",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
