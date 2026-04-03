@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refreshing Stoic Compass...</title>
+<style>body{background:#151520;color:#e8e6f0;font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
+.box{max-width:400px}h2{color:#d4a76a;margin-bottom:16px}p{color:#a8a6b8;line-height:1.6;margin-bottom:12px}.ok{color:#7fb8a0;font-weight:700}</style>
+</head>
+<body>
+<div class="box">
+<h2>Refreshing Stoic Compass</h2>
+<p id="status">Clearing old cache...</p>
+<p style="font-size:0.8rem;color:#6e6c80">Your data (logs, entries, settings) is safe — only the cached app files are being refreshed.</p>
+</div>
+<script>
+async function refresh() {
+  const s = document.getElementById('status');
+  try {
+    // Unregister all service workers
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) await r.unregister();
+    s.textContent = 'Service workers cleared.';
+
+    // Delete all caches
+    const keys = await caches.keys();
+    for (const k of keys) await caches.delete(k);
+    s.textContent = 'Cache cleared. Redirecting...';
+
+    // Redirect to main app with cache buster
+    setTimeout(() => {
+      window.location.href = './?t=' + Date.now();
+    }, 1000);
+  } catch(e) {
+    s.textContent = 'Error: ' + e.message;
+  }
+}
+refresh();
+</script>
+</body>
+</html>
