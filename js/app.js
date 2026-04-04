@@ -125,7 +125,12 @@ async function initApp() {
     showTodayVirtues();
   });
 
+  // Pre-load today's stoic data into forms (so it's ready even before switching tabs)
+  await loadModelOptions();
+  await loadTodayStoicData();
+
   // Auto-save: debounced save on any input/change in forms
+  // IMPORTANT: must come AFTER loadTodayStoicData to avoid overwriting with empty fields
   initAutoSave();
 
   // Restore any unsaved log draft
@@ -200,7 +205,21 @@ function initAutoSave() {
 }
 
 async function autoSaveMorning() {
-  const today = todayKey();
+  // Only auto-save if the Stoic view is currently visible (prevents overwriting with empty fields)
+  const stoicView = document.getElementById('viewStoic');
+  if (!stoicView || !stoicView.classList.contains('active')) return;
+
+  const justice = document.getElementById('virtueJustice')?.value.trim() || '';
+  const courage = document.getElementById('virtueCourage')?.value.trim() || '';
+  const temperance = document.getElementById('virtueTemperance')?.value.trim() || '';
+  const wisdom = document.getElementById('virtueWisdom')?.value.trim() || '';
+  const awareToday = document.getElementById('awareToday')?.value.trim() || '';
+  const awarePlan = document.getElementById('awarePlan')?.value.trim() || '';
+  const marcusNames1 = document.getElementById('marcusNames1')?.value.trim() || '';
+
+  // Don't save if everything is empty — prevents overwriting good data with blanks
+  if (!justice && !courage && !temperance && !wisdom && !awareToday && !marcusNames1) return;
+
   const allStoic = await dbGetAll('stoic');
   const existing = allStoic
     .filter(e => e.type === 'morning' && isToday(e.date))
@@ -210,18 +229,14 @@ async function autoSaveMorning() {
     id: existing?.id || Date.now(),
     type: 'morning',
     date: existing?.date || new Date().toISOString(),
-    justice: document.getElementById('virtueJustice')?.value.trim() || '',
-    courage: document.getElementById('virtueCourage')?.value.trim() || '',
-    temperance: document.getElementById('virtueTemperance')?.value.trim() || '',
-    wisdom: document.getElementById('virtueWisdom')?.value.trim() || '',
+    justice, courage, temperance, wisdom,
     negViz: [
       document.getElementById('negViz1')?.value.trim(),
       document.getElementById('negViz2')?.value.trim(),
       document.getElementById('negViz3')?.value.trim(),
     ].filter(v => v),
-    marcusNames: [document.getElementById('marcusNames1')?.value.trim()].filter(v => v),
-    awareToday: document.getElementById('awareToday')?.value.trim() || '',
-    awarePlan: document.getElementById('awarePlan')?.value.trim() || '',
+    marcusNames: [marcusNames1].filter(v => v),
+    awareToday, awarePlan,
     models: {
       justice: document.getElementById('modelJustice')?.value || document.getElementById('modelJusticeNew')?.value.trim() || '',
       courage: document.getElementById('modelCourage')?.value || document.getElementById('modelCourageNew')?.value.trim() || '',
@@ -231,12 +246,21 @@ async function autoSaveMorning() {
   };
 
   await dbPut('stoic', String(entry.id), entry);
-  // Silently update home virtues
   showTodayVirtues();
 }
 
 async function autoSaveEvening() {
-  const today = todayKey();
+  // Only auto-save if Stoic view is visible
+  const stoicView = document.getElementById('viewStoic');
+  if (!stoicView || !stoicView.classList.contains('active')) return;
+
+  const well = document.getElementById('senecaWell')?.value.trim() || '';
+  const avoided = document.getElementById('senecaAvoided')?.value.trim() || '';
+  const tomorrow = document.getElementById('senecaTomorrow')?.value.trim() || '';
+
+  // Don't save if everything is empty
+  if (!well && !avoided && !tomorrow) return;
+
   const allStoic = await dbGetAll('stoic');
   const existing = allStoic
     .filter(e => e.type === 'evening' && isToday(e.date))
@@ -246,9 +270,7 @@ async function autoSaveEvening() {
     id: existing?.id || Date.now(),
     type: 'evening',
     date: existing?.date || new Date().toISOString(),
-    well: document.getElementById('senecaWell')?.value.trim() || '',
-    avoided: document.getElementById('senecaAvoided')?.value.trim() || '',
-    tomorrow: document.getElementById('senecaTomorrow')?.value.trim() || '',
+    well, avoided, tomorrow,
   };
 
   await dbPut('stoic', String(entry.id), entry);
@@ -406,8 +428,9 @@ async function showTodayVirtues() {
   const container = document.getElementById('todayVirtues');
   if (!container) return;
   const allStoic = await dbGetAll('stoic');
+  // Look for today's morning entry — check type OR presence of virtue fields
   const todayMorning = allStoic
-    .filter(e => e.type === 'morning' && isToday(e.date))
+    .filter(e => isToday(e.date) && (e.type === 'morning' || e.justice || e.courage || e.temperance || e.wisdom))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   if (!todayMorning) {
