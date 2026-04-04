@@ -203,7 +203,7 @@ async function autoSaveMorning() {
   const today = todayKey();
   const allStoic = await dbGetAll('stoic');
   const existing = allStoic
-    .filter(e => e.type === 'morning' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'morning' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   const entry = {
@@ -239,7 +239,7 @@ async function autoSaveEvening() {
   const today = todayKey();
   const allStoic = await dbGetAll('stoic');
   const existing = allStoic
-    .filter(e => e.type === 'evening' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'evening' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   const entry = {
@@ -395,13 +395,19 @@ async function updateMorningEveningCards() {
 }
 
 // ===== TODAY'S VIRTUES =====
+function isToday(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
 async function showTodayVirtues() {
   const container = document.getElementById('todayVirtues');
   if (!container) return;
-  const today = todayKey();
   const allStoic = await dbGetAll('stoic');
   const todayMorning = allStoic
-    .filter(e => e.type === 'morning' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'morning' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   if (!todayMorning) {
@@ -1829,7 +1835,7 @@ async function loadTodayStoicData() {
 
   // Load today's morning
   const todayMorning = allStoic
-    .filter(e => e.type === 'morning' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'morning' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   if (todayMorning) {
@@ -1854,7 +1860,7 @@ async function loadTodayStoicData() {
 
   // Load today's evening
   const todayEvening = allStoic
-    .filter(e => e.type === 'evening' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'evening' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   if (todayEvening) {
@@ -1870,7 +1876,7 @@ async function saveStoicMorning() {
   const today = todayKey();
   const allStoic = await dbGetAll('stoic');
   const existing = allStoic
-    .filter(e => e.type === 'morning' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'morning' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   const entry = {
@@ -1921,7 +1927,7 @@ async function saveStoicEvening() {
   const today = todayKey();
   const allStoic = await dbGetAll('stoic');
   const existing = allStoic
-    .filter(e => e.type === 'evening' && e.date && e.date.startsWith(today))
+    .filter(e => e.type === 'evening' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
   const entry = {
