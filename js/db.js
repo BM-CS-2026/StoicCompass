@@ -41,7 +41,7 @@ async function dbGetAll(type) {
     endkey: `${type}:\ufff0`
   });
   return result.rows.map(r => {
-    const { _id, _rev, type: _, ...rest } = r.doc;
+    const { _id, _rev, ...rest } = r.doc;
     return rest;
   });
 }
