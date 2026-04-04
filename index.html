@@ -255,22 +255,11 @@
     <div id="toolDetail" style="display:none"></div>
   </div>
 
-  <!-- ===== PROGRESS / SETTINGS ===== -->
+  <!-- ===== SETTINGS ===== -->
   <div id="viewProgress" class="view">
-    <h2 class="mb-16" style="font-family:var(--serif)">Progress</h2>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-value" id="statEntries">0</div><div class="stat-label">Entries</div></div>
-      <div class="stat-card"><div class="stat-value" id="statAvgIntensity">--</div><div class="stat-label">Avg Intensity</div></div>
-      <div class="stat-card"><div class="stat-value" id="statStreak">0</div><div class="stat-label">Day Streak</div></div>
-      <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Practices</div></div>
-    </div>
-    <div class="section-header mt-16"><h2>Weekly Assessment</h2><button class="btn btn-sm btn-primary" onclick="saveAssessment()">Save</button></div>
-    <div class="form-group"><label>Avg daily anger</label><div class="intensity-display" id="valAvgAnger">5</div><input type="range" min="1" max="10" value="5" class="intensity-slider" data-metric="avgAnger" oninput="updateAssessSlider(this)"></div>
-    <div class="form-group"><label>Recovery time</label><div class="intensity-display" id="valRecovery">5</div><input type="range" min="1" max="10" value="5" class="intensity-slider" data-metric="recovery" oninput="updateAssessSlider(this)"></div>
-    <div class="form-group"><label>Skill use rate</label><div class="intensity-display" id="valSkillUse">5</div><input type="range" min="1" max="10" value="5" class="intensity-slider" data-metric="skillUse" oninput="updateAssessSlider(this)"></div>
-    <div class="form-group"><label>Satisfaction</label><div class="intensity-display" id="valSatisfaction">5</div><input type="range" min="1" max="10" value="5" class="intensity-slider" data-metric="satisfaction" oninput="updateAssessSlider(this)"></div>
+    <h2 class="mb-16" style="font-family:var(--serif)">Settings</h2>
 
-    <div class="card mt-16"><div class="card-header"><span class="card-icon">⚙️</span><h3>Settings</h3></div>
+    <div class="card"><div class="card-header"><span class="card-icon">👤</span><h3>Profile</h3></div>
       <div class="form-group"><label>Your Name (cognitive distancing)</label><input type="text" id="userNameInput" placeholder="Boaz Manash" onchange="saveUserName(this.value)"></div>
     </div>
     <div class="card"><div class="card-header"><span class="card-icon">🔄</span><h3>Sync (Cloudant)</h3></div>
