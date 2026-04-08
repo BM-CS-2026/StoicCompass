@@ -2537,6 +2537,39 @@ async function forceRefresh() {
   alert('UI refreshed.');
 }
 
+function toggleSettings() {
+  const overlay = document.getElementById('settingsOverlay');
+  if (!overlay) return;
+  const isOpen = overlay.style.display !== 'none';
+  overlay.style.display = isOpen ? 'none' : '';
+  if (!isOpen) {
+    // Show version info
+    const verEl = document.getElementById('settingsVersion');
+    if (verEl) verEl.textContent = typeof APP_VERSION !== 'undefined' ? APP_VERSION : '?';
+    const timeEl = document.getElementById('settingsTime');
+    if (timeEl) timeEl.textContent = new Date().toLocaleString();
+    // Init sync URL
+    const syncInput = document.getElementById('syncUrlInput');
+    if (syncInput) syncInput.value = getSyncUrl() || '';
+  }
+}
+
+async function clearCacheReload() {
+  if (!confirm('Clear app caches and reload?\n\nYour data (logs, entries, etc.) will NOT be deleted. Only cached files will be cleared.')) return;
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) await r.unregister();
+    }
+    const keys = await caches.keys();
+    for (const k of keys) await caches.delete(k);
+    alert('Caches cleared. Reloading...');
+    window.location.reload(true);
+  } catch (e) {
+    alert('Failed: ' + e.message);
+  }
+}
+
 async function clearLocalData() {
   if (!confirm('This will DELETE all local data. Are you sure?\n\nMake sure you have a backup (Export JSON) or data pushed to cloud first.')) return;
   if (!confirm('LAST WARNING: All logs, thought records, stoic entries will be permanently deleted from this device.')) return;
