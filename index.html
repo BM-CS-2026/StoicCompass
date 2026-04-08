@@ -35,6 +35,11 @@
     <div id="logForm">
       <div class="section-header"><h2 style="font-family:var(--serif)">Something is not in accordance with nature?</h2></div>
 
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer">
+        <input type="checkbox" id="logPremeditated" style="width:20px;height:20px">
+        <span style="font-size:0.95rem">🔮 This is a premeditated/futuristic entry</span>
+      </label>
+
       <div class="form-group"><label>When did it happen?</label>
         <input type="datetime-local" id="logEventDate"></div>
 
@@ -213,6 +218,13 @@
       <div class="form-group"><label>What did I do well today?</label><textarea id="senecaWell" rows="2" placeholder="Where did I act with virtue?"></textarea></div>
       <div class="form-group"><label>Where did I avoid what I should have done?</label><textarea id="senecaAvoided" rows="2" placeholder="What duty did I skip?"></textarea></div>
       <div class="form-group"><label>What will I do differently tomorrow?</label><textarea id="senecaTomorrow" rows="2" placeholder="One specific change..."></textarea></div>
+      <div style="margin-top:12px">
+        <h3 style="font-family:var(--serif);margin-bottom:8px">🙏 Gratitude</h3>
+        <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px">What are you grateful for today?</p>
+        <textarea id="senecaGratitude1" rows="2" placeholder="I am grateful for..." class="log-field"></textarea>
+        <textarea id="senecaGratitude2" rows="2" placeholder="I am grateful for..." class="log-field" style="margin-top:6px"></textarea>
+        <textarea id="senecaGratitude3" rows="2" placeholder="I am grateful for..." class="log-field" style="margin-top:6px"></textarea>
+      </div>
       <button class="btn btn-primary btn-full mt-8" onclick="saveStoicEvening()">Save Evening Reflection</button>
     </div>
 
@@ -249,7 +261,10 @@
         <button class="tool-btn" onclick="openTool('defusion')"><span class="tb-icon">☁️</span><span class="tb-label">Defusion</span></button>
         <button class="tool-btn" onclick="openTool('dearman')"><span class="tb-icon">🗣</span><span class="tb-label">DEAR MAN</span></button>
         <button class="tool-btn" onclick="openTool('selfcompassion')"><span class="tb-icon">💛</span><span class="tb-label">Self-Compassion</span></button>
-        <button class="tool-btn" onclick="openTool('premeditated')" style="border-color:rgba(212,167,106,0.2)"><span class="tb-icon">🔮</span><span class="tb-label">Premeditated Challenge</span></button>
+      </div>
+      <h2 class="mt-20 mb-12" style="font-family:var(--serif)">Meditation</h2>
+      <div class="tools-grid">
+        <button class="tool-btn" onclick="openTool('meditation')" style="border-color:rgba(212,167,106,0.2)"><span class="tb-icon">🧘</span><span class="tb-label">Meditation</span></button>
       </div>
     </div>
     <div id="toolDetail" style="display:none"></div>

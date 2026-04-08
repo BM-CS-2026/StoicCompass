@@ -268,6 +268,26 @@ async function testSync(url) {
   return info;
 }
 
+// ── Daily Backup ──
+
+function scheduleDailyBackup() {
+  const url = getSyncUrl();
+  if (!url) return;
+  const BACKUP_KEY = 'stoic_last_backup';
+  const ONE_DAY = 24 * 60 * 60 * 1000;
+  const lastPush = parseInt(localStorage.getItem(BACKUP_KEY) || '0');
+  if (Date.now() - lastPush > ONE_DAY) {
+    setTimeout(async () => {
+      try {
+        const remote = makeRemoteDB(url);
+        await localDB.replicate.to(remote);
+        localStorage.setItem(BACKUP_KEY, String(Date.now()));
+        console.log('[Backup] Daily push complete');
+      } catch (e) { console.warn('[Backup] Push failed:', e.message); }
+    }, 15000);
+  }
+}
+
 // ── Export / Import ──
 
 async function exportAllData() {

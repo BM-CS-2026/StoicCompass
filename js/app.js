@@ -89,6 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Auto RTL detection for Hebrew
+document.addEventListener('input', (e) => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+    const val = e.target.value;
+    const hebrewRegex = /[\u0590-\u05FF]/;
+    e.target.style.direction = hebrewRegex.test(val) ? 'rtl' : 'ltr';
+    e.target.style.textAlign = hebrewRegex.test(val) ? 'right' : 'left';
+  }
+});
+
 async function initApp() {
   // Migrate from old localStorage if needed
   await migrateFromLocalStorage();
@@ -135,6 +145,9 @@ async function initApp() {
 
   // Restore any unsaved log draft
   restoreLogDraft();
+
+  // Schedule daily cloud backup
+  scheduleDailyBackup();
 }
 
 // ===== HELPERS =====
@@ -184,7 +197,7 @@ function initAutoSave() {
   });
 
   // Stoic Evening — auto-save
-  ['senecaWell','senecaAvoided','senecaTomorrow'].forEach(id => {
+  ['senecaWell','senecaAvoided','senecaTomorrow','senecaGratitude1','senecaGratitude2','senecaGratitude3'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', () => debounceAutoSave('evening', autoSaveEvening));
   });
@@ -698,7 +711,14 @@ async function doSaveLog(editId) {
     resolved, betterNext, deflection,
     timeToPeak, duration: durationTotal,
     photo: pendingPhoto || (editId ? state.logs.find(l => l.id === editId)?.photo : null),
+    premeditated: document.getElementById('logPremeditated')?.checked || false,
   };
+
+  // Generate 10-years-from-now perspective
+  const futureYear = new Date().getFullYear() + 10;
+  const triggerText = entry.trigger || entry.thought || 'this event';
+  const emotionText = entry.emotions?.length ? entry.emotions.join(' and ').toLowerCase() : 'strong emotions';
+  entry.futureView = `It is ${futureYear}, 10 years ago Boaz Manash experienced: "${triggerText.substring(0, 100)}". He felt ${emotionText} at intensity ${entry.intensity}/10. Looking back a decade later, this moment has faded into distant memory, no longer carrying the weight it once did.`;
 
   await saveLog(entry);
 
@@ -755,6 +775,9 @@ function clearLogForm() {
   const photoInput = document.getElementById('logPhoto');
   if (photoInput) photoInput.value = '';
   pendingPhoto = null;
+  // Reset premeditated checkbox
+  const premedCheck = document.getElementById('logPremeditated');
+  if (premedCheck) premedCheck.checked = false;
   // Reset post-save UI
   const postSave = document.getElementById('postSaveActions');
   if (postSave) postSave.style.display = 'none';
@@ -924,6 +947,8 @@ function renderLogList() {
       ${l.deflection ? `<div style="margin-top:4px;font-size:0.82rem;color:var(--gold)"><strong>Deflection point:</strong> ${esc(l.deflection)}</div>` : ''}
       ${l.photo ? `<img src="${l.photo}" class="log-entry-photo" onclick="showFullPhoto('${l.id}')">` : ''}
       ${buildCognitiveDistancing(l)}
+      ${l.futureView ? `<div class="cog-distance" style="margin-top:6px"><div class="cog-distance-label">🔮 10 years from now</div><p>${esc(l.futureView)}</p></div>` : ''}
+      ${l.premeditated ? `<div style="margin-top:6px"><span class="tag tag-gold">🔮 Premeditated</span></div>` : ''}
       <div class="log-entry-actions">
         <button class="btn btn-sm btn-secondary" onclick="editLog(${l.id})">✏️ Edit</button>
         <button class="btn btn-sm btn-secondary" onclick="logToCBT(${l.id})">🧠 CBT</button>
@@ -1007,6 +1032,7 @@ function openTool(tool, prefillData) {
     case 'dearman': renderDearMan(detail); break;
     case 'selfcompassion': renderSelfCompassion(detail); break;
     case 'premeditated': renderPremeditated(detail); break;
+    case 'meditation': renderMeditation(detail); break;
   }
 }
 
@@ -1789,6 +1815,165 @@ async function renderPremeditatedHistory() {
   }).join('');
 }
 
+// ===== MEDITATION =====
+
+const MEDITATION_SESSIONS = [
+  { level: 1, title: "Breath Awareness", duration: 3, desc: "Simply observe your natural breathing. Don't try to change it. Notice the air entering and leaving your nostrils.",
+    steps: ["Sit comfortably with your back straight", "Close your eyes gently", "Breathe naturally through your nose", "Focus attention on the sensation of air at your nostrils", "When your mind wanders, gently bring it back to the breath", "Continue observing each breath without judgment"] },
+  { level: 2, title: "Counting Breaths", duration: 5, desc: "Count each exhale from 1 to 10, then start over. If you lose count, begin again at 1.",
+    steps: ["Sit in a comfortable position", "Close your eyes and take 3 deep breaths", "Begin counting each exhale: 1... 2... 3...", "If you reach 10, start over at 1", "If you lose count, gently restart at 1 with no frustration", "The restarting IS the practice, not a failure"] },
+  { level: 3, title: "Body Scan", duration: 7, desc: "Slowly move your attention through each part of your body, from toes to crown, noticing sensations without judgment.",
+    steps: ["Lie down or sit comfortably", "Close your eyes and take 3 deep breaths", "Bring attention to your feet. Notice any sensations", "Slowly move attention upward: ankles, calves, knees, thighs", "Continue: belly, chest, hands, arms, shoulders", "Then: neck, face, top of head", "Notice without judging. Just observe what is there"] },
+  { level: 4, title: "Loving-Kindness (Metta)", duration: 10, desc: "Direct feelings of warmth and goodwill toward yourself, then expand outward to others.",
+    steps: ["Sit comfortably, close your eyes", "Think of yourself. Silently repeat:", "May I be happy. May I be healthy. May I be safe.", "Next, think of someone you love. Repeat the phrases for them", "Then someone neutral, like a stranger you passed today", "Then someone difficult. This is the real practice", "Finally, extend to all beings everywhere"] },
+  { level: 5, title: "Open Awareness", duration: 15, desc: "Sit without any specific focus. Let thoughts, sounds, and sensations arise and pass like clouds in the sky.",
+    steps: ["Sit upright, relaxed, eyes closed or half-open", "Begin with a few minutes of breath focus", "Then release the focus on breath", "Let awareness be open to whatever arises", "Thoughts, sounds, feelings: notice them without engaging", "Don't follow or push away. Just observe", "You are the sky; thoughts are clouds passing through"] },
+  { level: 6, title: "Stoic Contemplation (Memento Mori)", duration: 10, desc: "Reflect on the impermanence of life. Not morbidly, but to sharpen gratitude and priorities.",
+    steps: ["Sit quietly and close your eyes", "Reflect: this day could be your last. Not with fear, but clarity", "Ask: Am I living according to my values today?", "Think of what truly matters. Not status, not possessions", "Feel gratitude for this moment, this breath, these people", "Resolve to spend your remaining time wisely", "Marcus Aurelius: 'It is not death that a man should fear, but never beginning to live.'"] },
+];
+
+let meditationTimer = null;
+
+function getMeditationProgress() {
+  return JSON.parse(localStorage.getItem('meditation_progress') || '{"currentLevel":1,"sessionsCompleted":0,"totalMinutes":0}');
+}
+
+function saveMeditationProgress(p) {
+  localStorage.setItem('meditation_progress', JSON.stringify(p));
+}
+
+function renderMeditation(el) {
+  const progress = getMeditationProgress();
+
+  el.innerHTML = `
+    <button class="btn btn-ghost mb-12" onclick="backToTools()">← Back</button>
+    <h2 class="mb-8" style="font-family:var(--serif)">🧘 Meditation Practice</h2>
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:16px">A progressive journey from beginner to advanced. Complete 3 sessions at each level to unlock the next.</p>
+
+    <div style="background:var(--card);border-radius:12px;padding:12px;margin-bottom:16px;border:1px solid rgba(212,167,106,0.2)">
+      <div style="font-size:0.82rem;color:var(--text2)">Your Progress</div>
+      <div style="font-size:1.1rem;font-weight:600;color:var(--gold)">Level ${progress.currentLevel} of ${MEDITATION_SESSIONS.length}</div>
+      <div style="font-size:0.82rem;color:var(--text2)">${progress.sessionsCompleted} sessions completed, ${progress.totalMinutes} total minutes</div>
+    </div>
+
+    <div id="meditationList">
+    ${MEDITATION_SESSIONS.map((s, i) => {
+      const unlocked = s.level <= progress.currentLevel;
+      const completed = s.level < progress.currentLevel;
+      return `
+        <div style="background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid ${completed ? 'var(--gold)' : unlocked ? 'rgba(212,167,106,0.3)' : 'rgba(255,255,255,0.05)'};opacity:${unlocked ? 1 : 0.5}">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="flex:1;min-width:0">
+              <span style="font-weight:600;color:${completed ? 'var(--gold)' : 'var(--text1)'}">${completed ? '✅' : unlocked ? '🧘' : '🔒'} Level ${s.level}: ${s.title}</span>
+              <div style="font-size:0.82rem;color:var(--text2)">${s.duration} min</div>
+              <div style="font-size:0.8rem;color:var(--text3);margin-top:2px">${s.desc}</div>
+            </div>
+            ${unlocked ? `<button class="btn btn-gold btn-sm" style="flex-shrink:0;margin-left:8px" onclick="startMeditation(${i})">Start</button>` : ''}
+          </div>
+        </div>`;
+    }).join('')}
+    </div>
+    <div id="meditationActive" style="display:none"></div>
+  `;
+}
+
+function startMeditation(idx) {
+  const session = MEDITATION_SESSIONS[idx];
+  if (!session) return;
+
+  const listEl = document.getElementById('meditationList');
+  const activeEl = document.getElementById('meditationActive');
+  if (!listEl || !activeEl) return;
+
+  listEl.style.display = 'none';
+  activeEl.style.display = '';
+
+  let currentStep = 0;
+  let secondsLeft = session.duration * 60;
+
+  function renderStep() {
+    const step = session.steps[currentStep];
+    const progress = Math.round(((session.duration * 60 - secondsLeft) / (session.duration * 60)) * 100);
+    const min = Math.floor(secondsLeft / 60);
+    const sec = secondsLeft % 60;
+
+    activeEl.innerHTML = `
+      <div style="text-align:center;padding:20px 0">
+        <h2 style="font-family:var(--serif);color:var(--gold);margin-bottom:4px">${session.title}</h2>
+        <div style="font-size:2.5rem;font-weight:700;color:var(--text1);margin:16px 0;font-variant-numeric:tabular-nums">${min}:${sec.toString().padStart(2, '0')}</div>
+        <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin:12px 0;overflow:hidden">
+          <div style="height:100%;background:var(--gold);border-radius:2px;width:${progress}%;transition:width 1s linear"></div>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text3);margin-bottom:20px">Step ${currentStep + 1} of ${session.steps.length}</div>
+        <div style="background:var(--card);border-radius:16px;padding:24px;margin:0 auto;max-width:360px;border:1px solid rgba(212,167,106,0.2)">
+          <p style="font-size:1.1rem;color:var(--text1);line-height:1.5;font-family:var(--serif)">${step}</p>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:24px">
+          ${currentStep > 0 ? '<button class="btn btn-ghost btn-sm" onclick="meditationPrevStep()">← Previous</button>' : ''}
+          ${currentStep < session.steps.length - 1 ? '<button class="btn btn-gold btn-sm" onclick="meditationNextStep()">Next →</button>' : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm mt-12" onclick="endMeditation(false)" style="color:var(--danger)">End Early</button>
+      </div>
+    `;
+  }
+
+  window._meditationSession = { session, idx, currentStep: () => currentStep };
+  window.meditationNextStep = () => { if (currentStep < session.steps.length - 1) { currentStep++; renderStep(); } };
+  window.meditationPrevStep = () => { if (currentStep > 0) { currentStep--; renderStep(); } };
+
+  renderStep();
+
+  // Timer
+  if (meditationTimer) clearInterval(meditationTimer);
+  meditationTimer = setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      clearInterval(meditationTimer);
+      meditationTimer = null;
+      endMeditation(true);
+      return;
+    }
+    // Auto-advance steps based on time
+    const stepDuration = (session.duration * 60) / session.steps.length;
+    const expectedStep = Math.min(Math.floor((session.duration * 60 - secondsLeft) / stepDuration), session.steps.length - 1);
+    if (expectedStep > currentStep) {
+      currentStep = expectedStep;
+    }
+    renderStep();
+  }, 1000);
+}
+
+function endMeditation(completed) {
+  if (meditationTimer) { clearInterval(meditationTimer); meditationTimer = null; }
+
+  const ms = window._meditationSession;
+  if (!ms) return;
+
+  if (completed) {
+    const progress = getMeditationProgress();
+    progress.sessionsCompleted++;
+    progress.totalMinutes += ms.session.duration;
+    // Unlock next level after 3 sessions at current level
+    if (progress.sessionsCompleted >= progress.currentLevel * 3 && progress.currentLevel < MEDITATION_SESSIONS.length) {
+      progress.currentLevel++;
+      alert(`Level ${progress.currentLevel} unlocked: ${MEDITATION_SESSIONS[progress.currentLevel - 1].title}!`);
+    }
+    saveMeditationProgress(progress);
+  }
+
+  // Re-render meditation list
+  const listEl = document.getElementById('meditationList');
+  const activeEl = document.getElementById('meditationActive');
+  if (listEl) listEl.style.display = '';
+  if (activeEl) activeEl.style.display = 'none';
+
+  if (completed) {
+    alert(`Session complete! ${ms.session.duration} minutes of ${ms.session.title}.`);
+  }
+
+  openTool('meditation');
+}
+
 // ===== ROUTINES (MODAL) =====
 function openRoutine(type) {
   const modal = document.getElementById('modalOverlay');
@@ -1822,7 +2007,16 @@ function renderEveningRoutine(el) {
     </div>
     <div class="card">
       <h3 class="mb-8" style="font-size:0.95rem">3. Emotional Reset</h3>
-      <p style="color:var(--text2);font-size:0.9rem;line-height:1.6">Take 3 slow breaths. Name one thing that went well today. Name one thing you are grateful for. Let go: "I have done what I can today."</p>
+      <p style="color:var(--text2);font-size:0.9rem;line-height:1.6">Take 3 slow breaths. Name one thing that went well today. Let go: "I have done what I can today."</p>
+    </div>
+    <div class="card">
+      <div style="margin-top:0">
+        <h3 style="font-family:var(--serif);margin-bottom:8px">🙏 Gratitude</h3>
+        <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px">What are you grateful for today?</p>
+        <textarea id="gratitude1" rows="2" placeholder="I am grateful for..." class="log-field"></textarea>
+        <textarea id="gratitude2" rows="2" placeholder="I am grateful for..." class="log-field" style="margin-top:6px"></textarea>
+        <textarea id="gratitude3" rows="2" placeholder="I am grateful for..." class="log-field" style="margin-top:6px"></textarea>
+      </div>
     </div>
     <button class="btn btn-primary btn-full mt-12" onclick="saveEveningModal()">Save Evening Reflection</button>`;
 }
@@ -1835,6 +2029,11 @@ async function saveEveningModal() {
     well: document.getElementById('modalSenecaWell').value.trim(),
     avoided: document.getElementById('modalSenecaAvoided').value.trim(),
     tomorrow: document.getElementById('modalSenecaTomorrow').value.trim(),
+    gratitude: [
+      document.getElementById('gratitude1')?.value?.trim(),
+      document.getElementById('gratitude2')?.value?.trim(),
+      document.getElementById('gratitude3')?.value?.trim(),
+    ].filter(Boolean),
   };
 
   await dbPut('stoic', String(entry.id), entry);
@@ -1960,6 +2159,11 @@ async function saveStoicEvening() {
     well: document.getElementById('senecaWell').value.trim(),
     avoided: document.getElementById('senecaAvoided').value.trim(),
     tomorrow: document.getElementById('senecaTomorrow').value.trim(),
+    gratitude: [
+      document.getElementById('senecaGratitude1')?.value?.trim(),
+      document.getElementById('senecaGratitude2')?.value?.trim(),
+      document.getElementById('senecaGratitude3')?.value?.trim(),
+    ].filter(Boolean),
   };
 
   await dbPut('stoic', String(entry.id), entry);
@@ -1970,7 +2174,7 @@ async function saveStoicEvening() {
   buildDailyChecklist();
 
   // Clear evening form fields
-  ['senecaWell','senecaAvoided','senecaTomorrow'].forEach(id => {
+  ['senecaWell','senecaAvoided','senecaTomorrow','senecaGratitude1','senecaGratitude2','senecaGratitude3'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2062,6 +2266,7 @@ async function renderStoicHistory() {
         ${e.well ? `<div style="font-size:0.85rem;color:var(--success)"><strong>Well:</strong> ${esc(e.well)}</div>` : ''}
         ${e.avoided ? `<div style="font-size:0.85rem;color:var(--gold)"><strong>Avoided:</strong> ${esc(e.avoided)}</div>` : ''}
         ${e.tomorrow ? `<div style="font-size:0.85rem;color:var(--accent)"><strong>Tomorrow:</strong> ${esc(e.tomorrow)}</div>` : ''}
+        ${e.gratitude?.length ? `<div style="margin-top:6px;font-size:0.85rem;color:var(--text2)"><strong>🙏 Grateful for:</strong> ${e.gratitude.map(g => esc(g)).join('; ')}</div>` : ''}
       </div>`;
     }
   }).join('');
