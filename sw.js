@@ -1,5 +1,5 @@
 // Service worker — network-first strategy so updates always come through
-const CACHE_NAME = 'stoiccompass-v13';
+const CACHE_NAME = 'stoiccompass-v14';
 const ASSETS = ['./', './index.html', './css/style.css', './version.js', './js/quotes.js', './js/db.js', './js/app.js', './manifest.json'];
 
 self.addEventListener('install', e => {

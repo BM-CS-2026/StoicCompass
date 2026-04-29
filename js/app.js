@@ -461,32 +461,51 @@ async function showTodayVirtues() {
   // Virtues are weekly — pull from the most recent virtue entry in the past 7 days.
   const virtuesEntry = findCurrentWeekVirtues(allStoic);
 
-  // Today-specific extras (aware/marcus/models) still come from today's morning entry.
+  // Today-specific extras (negViz/aware/marcus/models) come from today's morning entry.
   const todayMorning = allStoic
     .filter(e => isToday(e.date) && (e.type === 'morning' || e.justice || e.courage || e.temperance || e.wisdom))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
-  if (!virtuesEntry && !todayMorning) {
-    container.innerHTML = '<p style="color:var(--text3)">Tap to set this week\'s virtues in the Stoic tab.</p>';
-    return;
-  }
-
-  const virtues = virtuesEntry ? [
-    virtuesEntry.justice && `<div style="margin-bottom:6px">⚖️ <strong>Justice:</strong> ${esc(virtuesEntry.justice)}</div>`,
-    virtuesEntry.courage && `<div style="margin-bottom:6px">🦁 <strong>Courage:</strong> ${esc(virtuesEntry.courage)}</div>`,
-    virtuesEntry.temperance && `<div style="margin-bottom:6px">🧘 <strong>Temperance:</strong> ${esc(virtuesEntry.temperance)}</div>`,
-    virtuesEntry.wisdom && `<div style="margin-bottom:6px">🦉 <strong>Wisdom:</strong> ${esc(virtuesEntry.wisdom)}</div>`,
-  ].filter(Boolean) : [];
-
   const todayExtras = todayMorning || {};
-  const models = Object.entries(todayExtras.models || {}).filter(([,v]) => v);
+
+  // Always render all 4 virtues; show "Not set" placeholder for any that are blank.
+  const virtueDefs = [
+    { key: 'justice',    icon: '⚖️', label: 'Justice' },
+    { key: 'courage',    icon: '🦁', label: 'Courage' },
+    { key: 'temperance', icon: '🧘', label: 'Temperance' },
+    { key: 'wisdom',     icon: '🦉', label: 'Wisdom' },
+  ];
+  const virtueRows = virtueDefs.map(v => {
+    const val = virtuesEntry?.[v.key] || '';
+    const text = val ? esc(val) : 'Not set';
+    const txtStyle = val ? '' : 'color:var(--text3);font-style:italic;';
+    return `<div style="display:flex;gap:6px;margin-bottom:4px;font-size:0.88rem;line-height:1.35">
+      <span style="flex-shrink:0">${v.icon}</span>
+      <span style="flex-shrink:0;font-weight:700;color:var(--text1)">${v.label}:</span>
+      <span style="${txtStyle}flex:1;min-width:0">${text}</span>
+    </div>`;
+  }).join('');
+
+  // Compact negative visualization — fits with virtues on one screen.
+  const negVizItems = (todayExtras.negViz || []).filter(Boolean);
+  const negVizHtml = `
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--surface3)">
+      <div style="font-size:0.74rem;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:4px">🌑 NEGATIVE VISUALIZATION</div>
+      ${negVizItems.length
+        ? negVizItems.map((n, i) => `<div style="font-size:0.82rem;line-height:1.3;color:var(--text2);margin-bottom:2px"><span style="color:var(--text3)">${i + 1}.</span> ${esc(n)}</div>`).join('')
+        : '<div style="font-size:0.82rem;color:var(--text3);font-style:italic">Tap to prepare for what might go wrong today.</div>'}
+    </div>
+  `;
+
+  const models = Object.entries(todayExtras.models || {}).filter(([, v]) => v);
   const names = (todayExtras.marcusNames || []).filter(n => n);
 
   container.innerHTML = `
-    ${virtues.length ? virtues.join('') : '<p style="color:var(--text3)">No virtues set this week.</p>'}
+    ${virtueRows}
+    ${negVizHtml}
     ${todayExtras.awareToday ? `<div style="margin-top:10px;padding:10px;background:rgba(212,167,106,0.06);border-radius:8px;border-left:3px solid var(--gold)"><div style="font-size:0.78rem;font-weight:700;color:var(--gold);margin-bottom:4px">👁 AWARE OF TODAY</div><div style="font-size:0.85rem;color:var(--text2)">${esc(todayExtras.awareToday)}</div>${todayExtras.awarePlan ? `<div style="font-size:0.82rem;color:var(--accent);margin-top:4px"><strong>Plan:</strong> ${esc(todayExtras.awarePlan)}</div>` : ''}</div>` : ''}
     ${names.length ? `<div style="margin-top:8px;font-size:0.85rem;color:var(--text3)"><strong>🏛 Prepared for:</strong> ${names.join(', ')}</div>` : ''}
-    ${models.length ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text3)"><strong>🗿 Models:</strong> ${models.map(([k,v]) => v).join(', ')}</div>` : ''}
+    ${models.length ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text3)"><strong>🗿 Models:</strong> ${models.map(([k, v]) => v).join(', ')}</div>` : ''}
   `;
 }
 
