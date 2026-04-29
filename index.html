@@ -22,8 +22,8 @@
   <div id="viewHome" class="view active">
     <div class="quote-card" id="dailyQuote"></div>
 
-    <div class="section-header" style="cursor:pointer" onclick="switchTab('stoic')"><h2>Today's Virtues</h2><span class="tag tag-gold">Tap to set →</span></div>
-    <div id="todayVirtues" class="card" style="cursor:pointer" onclick="switchTab('stoic')"><p style="color:var(--text3)">Tap here to set your morning virtues.</p></div>
+    <div class="section-header" style="cursor:pointer" onclick="switchTab('stoic')"><h2>This Week's Virtues</h2><span class="tag tag-gold">Tap to set →</span></div>
+    <div id="todayVirtues" class="card" style="cursor:pointer" onclick="switchTab('stoic')"><p style="color:var(--text3)">Tap here to set your weekly virtues.</p></div>
 
     <button class="btn btn-gold btn-full mt-20" onclick="openRoutine('evening')" style="font-family:var(--serif);font-size:1rem;padding:18px">
       🌙 Conclude the Day — A New River Tomorrow
@@ -157,27 +157,12 @@
     <h2 class="mb-16" style="font-family:var(--serif)">🏛 Stoic Practice</h2>
 
     <div class="card stoic-card">
-      <div class="card-header"><span class="card-icon">🌅</span><h3>Morning Virtues</h3></div>
-      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Set your intention for each cardinal virtue today.</p>
-      <div class="virtue-row"><div class="virtue-icon">⚖️</div><div class="virtue-body"><div class="virtue-name">Justice <span class="virtue-sub">— fairness, duty to others</span></div><textarea id="virtueJustice" rows="2" placeholder="What will I do today that is fair and serves others?"></textarea></div></div>
-      <div class="virtue-row"><div class="virtue-icon">🦁</div><div class="virtue-body"><div class="virtue-name">Courage <span class="virtue-sub">— doing right despite fear</span></div><textarea id="virtueCourage" rows="2" placeholder="What right thing will I do despite difficulty?"></textarea></div></div>
-      <div class="virtue-row"><div class="virtue-icon">🧘</div><div class="virtue-body"><div class="virtue-name">Temperance <span class="virtue-sub">— self-control, moderation</span></div><textarea id="virtueTemperance" rows="2" placeholder="Where will I practice self-control today?"></textarea></div></div>
+      <div class="card-header"><span class="card-icon">🌅</span><h3>Weekly Virtues</h3></div>
+      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Set your intention for each cardinal virtue this week.</p>
+      <div class="virtue-row"><div class="virtue-icon">⚖️</div><div class="virtue-body"><div class="virtue-name">Justice <span class="virtue-sub">— fairness, duty to others</span></div><textarea id="virtueJustice" rows="2" placeholder="What will I do this week that is fair and serves others?"></textarea></div></div>
+      <div class="virtue-row"><div class="virtue-icon">🦁</div><div class="virtue-body"><div class="virtue-name">Courage <span class="virtue-sub">— doing right despite fear</span></div><textarea id="virtueCourage" rows="2" placeholder="What right thing will I do this week despite difficulty?"></textarea></div></div>
+      <div class="virtue-row"><div class="virtue-icon">🧘</div><div class="virtue-body"><div class="virtue-name">Temperance <span class="virtue-sub">— self-control, moderation</span></div><textarea id="virtueTemperance" rows="2" placeholder="Where will I practice self-control this week?"></textarea></div></div>
       <div class="virtue-row"><div class="virtue-icon">🦉</div><div class="virtue-body"><div class="virtue-name">Wisdom <span class="virtue-sub">— seeing clearly, choosing well</span></div><textarea id="virtueWisdom" rows="2" placeholder="What requires clear seeing and good choices?"></textarea></div></div>
-    </div>
-
-    <div class="card stoic-card">
-      <div class="card-header"><span class="card-icon">👁</span><h3>What to Be Aware of Today</h3></div>
-      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Situations, people, or patterns that may challenge your equanimity. Name them now so they don't catch you off guard.</p>
-      <div class="form-group"><label>Situations or interactions to watch for</label><textarea id="awareToday" rows="3" placeholder="A tense meeting at 2pm... A conversation I've been avoiding... The commute when I'm tired..."></textarea></div>
-      <div class="form-group"><label>Which virtue will I need most?</label>
-        <div class="trigger-chips">
-          <button class="trigger-chip" data-t="justice" onclick="this.classList.toggle('selected')">⚖️ Justice</button>
-          <button class="trigger-chip" data-t="courage" onclick="this.classList.toggle('selected')">🦁 Courage</button>
-          <button class="trigger-chip" data-t="temperance" onclick="this.classList.toggle('selected')">🧘 Temperance</button>
-          <button class="trigger-chip" data-t="wisdom" onclick="this.classList.toggle('selected')">🦉 Wisdom</button>
-        </div>
-      </div>
-      <div class="form-group"><label>My planned response if triggered</label><textarea id="awarePlan" rows="2" placeholder="I will pause, breathe, and ask a clarifying question before reacting..."></textarea></div>
     </div>
 
     <div class="card stoic-card">
@@ -186,6 +171,21 @@
       <div class="form-group"><label>1. Something bad that might happen</label><textarea id="negViz1" rows="1" placeholder="The meeting might go poorly..."></textarea></div>
       <div class="form-group"><label>2. Another possibility</label><textarea id="negViz2" rows="1" placeholder="I might not finish the deadline..."></textarea></div>
       <div class="form-group"><label>3. A third possibility</label><textarea id="negViz3" rows="1" placeholder="Someone might criticize my work..."></textarea></div>
+    </div>
+
+    <div class="card stoic-card">
+      <div class="card-header"><span class="card-icon">👁</span><h3>What to Be Aware of Today</h3></div>
+      <p class="mb-12" style="font-size:0.82rem;color:var(--text2)">Situations, people, or patterns that may challenge your equanimity. Name them now so they don't catch you off guard.</p>
+      <div class="form-group"><label>Situations or interactions to watch for</label><textarea id="awareToday" rows="3" placeholder="A tense meeting at 2pm... A conversation I've been avoiding... The commute when I'm tired..."></textarea></div>
+      <div class="form-group"><label>Which virtue will I need most?</label>
+        <div class="trigger-chips" id="awareVirtueChips">
+          <button class="trigger-chip" data-t="justice" onclick="this.classList.toggle('selected')">⚖️ Justice</button>
+          <button class="trigger-chip" data-t="courage" onclick="this.classList.toggle('selected')">🦁 Courage</button>
+          <button class="trigger-chip" data-t="temperance" onclick="this.classList.toggle('selected')">🧘 Temperance</button>
+          <button class="trigger-chip" data-t="wisdom" onclick="this.classList.toggle('selected')">🦉 Wisdom</button>
+        </div>
+      </div>
+      <div class="form-group"><label>My planned response if triggered</label><textarea id="awarePlan" rows="2" placeholder="I will pause, breathe, and ask a clarifying question before reacting..."></textarea></div>
     </div>
 
     <div class="card stoic-card marcus-card">

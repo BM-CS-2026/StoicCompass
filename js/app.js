@@ -437,33 +437,54 @@ function isToday(dateStr) {
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 }
 
+function isWithinDays(dateStr, days) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr).getTime();
+  if (isNaN(d)) return false;
+  return (Date.now() - d) <= days * 24 * 60 * 60 * 1000;
+}
+
+// Most recent stoic entry within the past 7 days that actually has any virtue
+// filled in. Virtues are now treated as weekly: once you set them, they remain
+// "current" for 7 days regardless of which day's morning entry holds them.
+function findCurrentWeekVirtues(allStoic) {
+  return allStoic
+    .filter(e => isWithinDays(e.date, 7) && (e.justice || e.courage || e.temperance || e.wisdom))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0] || null;
+}
+
 async function showTodayVirtues() {
   const container = document.getElementById('todayVirtues');
   if (!container) return;
   const allStoic = await dbGetAll('stoic');
-  // Look for today's morning entry — check type OR presence of virtue fields
+
+  // Virtues are weekly — pull from the most recent virtue entry in the past 7 days.
+  const virtuesEntry = findCurrentWeekVirtues(allStoic);
+
+  // Today-specific extras (aware/marcus/models) still come from today's morning entry.
   const todayMorning = allStoic
     .filter(e => isToday(e.date) && (e.type === 'morning' || e.justice || e.courage || e.temperance || e.wisdom))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
-  if (!todayMorning) {
-    container.innerHTML = '<p style="color:var(--text3)">Complete your morning practice in the Stoic tab.</p>';
+  if (!virtuesEntry && !todayMorning) {
+    container.innerHTML = '<p style="color:var(--text3)">Tap to set this week\'s virtues in the Stoic tab.</p>';
     return;
   }
 
-  const virtues = [
-    todayMorning.justice && `<div style="margin-bottom:6px">⚖️ <strong>Justice:</strong> ${esc(todayMorning.justice)}</div>`,
-    todayMorning.courage && `<div style="margin-bottom:6px">🦁 <strong>Courage:</strong> ${esc(todayMorning.courage)}</div>`,
-    todayMorning.temperance && `<div style="margin-bottom:6px">🧘 <strong>Temperance:</strong> ${esc(todayMorning.temperance)}</div>`,
-    todayMorning.wisdom && `<div style="margin-bottom:6px">🦉 <strong>Wisdom:</strong> ${esc(todayMorning.wisdom)}</div>`,
-  ].filter(Boolean);
+  const virtues = virtuesEntry ? [
+    virtuesEntry.justice && `<div style="margin-bottom:6px">⚖️ <strong>Justice:</strong> ${esc(virtuesEntry.justice)}</div>`,
+    virtuesEntry.courage && `<div style="margin-bottom:6px">🦁 <strong>Courage:</strong> ${esc(virtuesEntry.courage)}</div>`,
+    virtuesEntry.temperance && `<div style="margin-bottom:6px">🧘 <strong>Temperance:</strong> ${esc(virtuesEntry.temperance)}</div>`,
+    virtuesEntry.wisdom && `<div style="margin-bottom:6px">🦉 <strong>Wisdom:</strong> ${esc(virtuesEntry.wisdom)}</div>`,
+  ].filter(Boolean) : [];
 
-  const models = Object.entries(todayMorning.models || {}).filter(([,v]) => v);
-  const names = (todayMorning.marcusNames || []).filter(n => n);
+  const todayExtras = todayMorning || {};
+  const models = Object.entries(todayExtras.models || {}).filter(([,v]) => v);
+  const names = (todayExtras.marcusNames || []).filter(n => n);
 
   container.innerHTML = `
-    ${virtues.length ? virtues.join('') : '<p style="color:var(--text3)">No virtues set for today.</p>'}
-    ${todayMorning.awareToday ? `<div style="margin-top:10px;padding:10px;background:rgba(212,167,106,0.06);border-radius:8px;border-left:3px solid var(--gold)"><div style="font-size:0.78rem;font-weight:700;color:var(--gold);margin-bottom:4px">👁 AWARE OF TODAY</div><div style="font-size:0.85rem;color:var(--text2)">${esc(todayMorning.awareToday)}</div>${todayMorning.awarePlan ? `<div style="font-size:0.82rem;color:var(--accent);margin-top:4px"><strong>Plan:</strong> ${esc(todayMorning.awarePlan)}</div>` : ''}</div>` : ''}
+    ${virtues.length ? virtues.join('') : '<p style="color:var(--text3)">No virtues set this week.</p>'}
+    ${todayExtras.awareToday ? `<div style="margin-top:10px;padding:10px;background:rgba(212,167,106,0.06);border-radius:8px;border-left:3px solid var(--gold)"><div style="font-size:0.78rem;font-weight:700;color:var(--gold);margin-bottom:4px">👁 AWARE OF TODAY</div><div style="font-size:0.85rem;color:var(--text2)">${esc(todayExtras.awareToday)}</div>${todayExtras.awarePlan ? `<div style="font-size:0.82rem;color:var(--accent);margin-top:4px"><strong>Plan:</strong> ${esc(todayExtras.awarePlan)}</div>` : ''}</div>` : ''}
     ${names.length ? `<div style="margin-top:8px;font-size:0.85rem;color:var(--text3)"><strong>🏛 Prepared for:</strong> ${names.join(', ')}</div>` : ''}
     ${models.length ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text3)"><strong>🗿 Models:</strong> ${models.map(([k,v]) => v).join(', ')}</div>` : ''}
   `;
@@ -2060,12 +2081,19 @@ async function loadTodayStoicData() {
     .filter(e => e.type === 'morning' && isToday(e.date))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
 
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+  // Virtues are weekly — pre-fill from the most recent virtue entry in the past 7 days
+  // (which may be from an earlier day this week, not necessarily today).
+  const weekVirtues = findCurrentWeekVirtues(allStoic);
+  if (weekVirtues) {
+    setVal('virtueJustice', weekVirtues.justice);
+    setVal('virtueCourage', weekVirtues.courage);
+    setVal('virtueTemperance', weekVirtues.temperance);
+    setVal('virtueWisdom', weekVirtues.wisdom);
+  }
+
   if (todayMorning) {
-    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-    setVal('virtueJustice', todayMorning.justice);
-    setVal('virtueCourage', todayMorning.courage);
-    setVal('virtueTemperance', todayMorning.temperance);
-    setVal('virtueWisdom', todayMorning.wisdom);
     (todayMorning.negViz || []).forEach((v, i) => setVal('negViz' + (i + 1), v));
     setVal('awareToday', todayMorning.awareToday);
     setVal('awarePlan', todayMorning.awarePlan);
@@ -2117,7 +2145,7 @@ async function saveStoicMorning() {
     marcusNames: [document.getElementById('marcusNames1').value.trim()].filter(v => v),
     awareToday: document.getElementById('awareToday')?.value.trim() || '',
     awarePlan: document.getElementById('awarePlan')?.value.trim() || '',
-    awareVirtues: Array.from(document.querySelectorAll('#viewStoic .card:nth-child(2) .trigger-chip.selected')).map(c => c.dataset.t).filter(Boolean),
+    awareVirtues: Array.from(document.querySelectorAll('#awareVirtueChips .trigger-chip.selected')).map(c => c.dataset.t).filter(Boolean),
     models: {
       justice: document.getElementById('modelJustice').value || document.getElementById('modelJusticeNew').value.trim(),
       courage: document.getElementById('modelCourage').value || document.getElementById('modelCourageNew').value.trim(),
